@@ -154,11 +154,15 @@ function openModal(productId) {
     <span>📦 Mín. ${currentProduct.pedido_minimo || 15} un</span>
   `;
 
+  // Galeria de imagens
   const imgEl = document.getElementById('modal-img');
-  if (currentProduct.imagem_url) {
-    imgEl.innerHTML = `<img src="${currentProduct.imagem_url}" alt="${currentProduct.ref}">`;
+  const imagens = currentProduct.imagens || [];
+  if (imagens.length > 0) {
+    renderGallery(imgEl, imagens, currentProduct);
+  } else if (currentProduct.imagem_url) {
+    imgEl.innerHTML = `<div class="modal-gallery"><img class="modal-gallery__img" src="${currentProduct.imagem_url}" alt="${currentProduct.ref}"></div>`;
   } else {
-    imgEl.textContent = CAT_ICONS[currentProduct.categoria_slug] || '🔗';
+    imgEl.innerHTML = `<div class="modal-gallery"><span class="modal-gallery__no-img">${CAT_ICONS[currentProduct.categoria_slug] || '🔗'}</span></div>`;
   }
 
   const minQty = currentProduct.pedido_minimo || 15;
@@ -180,6 +184,40 @@ function openModal(productId) {
 
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+let galleryIndex = 0;
+let galleryImages = [];
+
+function renderGallery(container, imagens, produto) {
+  galleryImages = imagens;
+  galleryIndex = 0;
+  updateGalleryDisplay(container);
+}
+
+function updateGalleryDisplay(container) {
+  if (!container) container = document.getElementById('modal-img');
+  const img = galleryImages[galleryIndex];
+  const showNav = galleryImages.length > 1;
+  container.innerHTML = `
+    <div class="modal-gallery">
+      <img class="modal-gallery__img" src="${img.url}" alt="Foto ${galleryIndex + 1}">
+      ${showNav ? `<button class="gallery-nav gallery-nav--prev" onclick="galleryNav(-1)">❮</button>` : ''}
+      ${showNav ? `<button class="gallery-nav gallery-nav--next" onclick="galleryNav(1)">❯</button>` : ''}
+      ${showNav ? `<div class="gallery-dots">${galleryImages.map((_, i) =>
+        `<button class="gallery-dot ${i === galleryIndex ? 'active' : ''}" onclick="galleryGoto(${i})"></button>`
+      ).join('')}</div>` : ''}
+    </div>`;
+}
+
+function galleryNav(dir) {
+  galleryIndex = (galleryIndex + dir + galleryImages.length) % galleryImages.length;
+  updateGalleryDisplay();
+}
+
+function galleryGoto(i) {
+  galleryIndex = i;
+  updateGalleryDisplay();
 }
 
 function selectMaterial(variacaoId) {

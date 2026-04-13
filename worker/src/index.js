@@ -194,6 +194,18 @@ export default {
       return json(produtos);
     }
 
+    // GET /api/imagem/:key* — serve imagem do R2 (público)
+    if (path.startsWith('/api/imagem/') && method === 'GET') {
+      const key = decodeURIComponent(path.replace('/api/imagem/', ''));
+      const obj = await env.IMAGES.get(key);
+      if (!obj) return new Response('Not found', { status: 404 });
+      const headers = new Headers();
+      obj.writeHttpMetadata(headers);
+      headers.set('Cache-Control', 'public, max-age=31536000');
+      headers.set('Access-Control-Allow-Origin', '*');
+      return new Response(obj.body, { headers });
+    }
+
     // GET /api/produto/:ref
     if (path.startsWith('/api/produto/') && method === 'GET') {
       const ref = decodeURIComponent(path.split('/api/produto/')[1]);
@@ -204,7 +216,15 @@ export default {
       const variacoes = await env.DB.prepare(
         'SELECT * FROM variacoes_produto WHERE produto_id = ?'
       ).bind(produto.id).all();
-      return json({ ...produto, variacoes: variacoes.results });
+      const imagens = await env.DB.prepare(
+        'SELECT * FROM imagens_produto WHERE produto_id = ? ORDER BY ordem ASC'
+      ).bind(produto.id).all();
+      const baseUrl = new URL(request.url).origin;
+      const imagensComUrl = imagens.results.map(img => ({
+        ...img,
+        url: `${baseUrl}/api/imagem/${img.r2_key}`,
+      }));
+      return json({ ...produto, variacoes: variacoes.results, imagens: imagensComUrl });
     }
 
     // POST /api/pedido
@@ -377,6 +397,83 @@ export default {
             ).bind(v.preco || null, v.disponivel ? 1 : 0, v.id).run();
           }
         }
+        return json({ success: true });
+      }
+
+      // POST /api/admin/produto/:id/imagem — upload de imagem
+      if (path.match(/^\/api\/admin\/produto\/\d+\/imagem$/) && method === 'POST') {
+        const produtoId = path.split('/')[4];
+
+        // Verificar limite de 5 imagens
+        const count = await env.DB.prepare(
+          'SELECT COUNT(*) as cnt FROM imagens_produto WHERE produto_id = ?'
+        ).bind(produtoId).first();
+        if (count?.cnt >= 5) return err('Limite de 5 imagens por produto atingido', 400);
+
+        const formData = await request.formData();
+        const file = formData.get('imagem');
+        if (!file || !file.size) return err('Arquivo não enviado');
+
+        // Validar tipo
+        const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!tiposPermitidos.includes(file.type)) return err('Tipo de arquivo não permitido. Use JPG, PNG, WebP ou GIF.');
+
+        // Validar tamanho (5MB)
+        if (file.size > 5 * 1024 * 1024) return err('Arquivo muito grande. Máximo 5MB.');
+
+        const ext = file.name.split('.').pop() || 'jpg';
+        const key = `produtos/${produtoId}/${Date.now()}.${ext}`;
+
+        await env.IMAGES.put(key, file.stream(), {
+          httpMetadata: { contentType: file.type },
+        });
+
+        // Salvar no banco
+        const ordem = count?.cnt || 0;
+        const result = await env.DB.prepare(
+          'INSERT INTO imagens_produto (produto_id, r2_key, ordem) VALUES (?, ?, ?)'
+        ).bind(produtoId, key, ordem).run();
+
+        const baseUrl = new URL(request.url).origin;
+        return json({
+          success: true,
+          id: result.meta.last_row_id,
+          url: `${baseUrl}/api/imagem/${key}`,
+          r2_key: key,
+          ordem,
+        }, 201);
+      }
+
+      // GET /api/admin/produto/:id/imagens — lista imagens
+      if (path.match(/^\/api\/admin\/produto\/\d+\/imagens$/) && method === 'GET') {
+        const produtoId = path.split('/')[4];
+        const imagens = await env.DB.prepare(
+          'SELECT * FROM imagens_produto WHERE produto_id = ? ORDER BY ordem ASC'
+        ).bind(produtoId).all();
+        const baseUrl = new URL(request.url).origin;
+        return json(imagens.results.map(img => ({
+          ...img,
+          url: `${baseUrl}/api/imagem/${img.r2_key}`,
+        })));
+      }
+
+      // DELETE /api/admin/imagem/:id — remove imagem
+      if (path.match(/^\/api\/admin\/imagem\/\d+$/) && method === 'DELETE') {
+        const imgId = path.split('/').pop();
+        const img = await env.DB.prepare('SELECT * FROM imagens_produto WHERE id = ?').bind(imgId).first();
+        if (!img) return err('Imagem não encontrada', 404);
+        // Remover do R2
+        await env.IMAGES.delete(img.r2_key);
+        // Remover do banco
+        await env.DB.prepare('DELETE FROM imagens_produto WHERE id = ?').bind(imgId).run();
+        return json({ success: true });
+      }
+
+      // PUT /api/admin/imagem/:id/ordem — reordenar
+      if (path.match(/^\/api\/admin\/imagem\/\d+\/ordem$/) && method === 'PUT') {
+        const imgId = path.split('/')[4];
+        const { ordem } = await request.json();
+        await env.DB.prepare('UPDATE imagens_produto SET ordem = ? WHERE id = ?').bind(ordem, imgId).run();
         return json({ success: true });
       }
 

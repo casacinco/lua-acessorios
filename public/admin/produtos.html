@@ -97,10 +97,20 @@
             <label>Pedido mínimo</label>
             <input type="number" class="form-control" id="p-minimo" value="15" min="1">
           </div>
-          <div class="form-group">
-            <label>URL da Imagem</label>
-            <input type="url" class="form-control" id="p-imagem" placeholder="https://...">
+        </div>
+
+        <div class="modal__divider" style="height:1px;background:var(--border);margin:16px 0"></div>
+        <div class="img-upload-section" id="img-upload-section" style="display:none">
+          <div class="img-upload-section__title">
+            🖼️ Fotos do Produto <span id="img-count">0/5</span>
           </div>
+          <div id="img-dropzone" class="img-dropzone">
+            <input type="file" id="img-file-input" accept="image/*" multiple
+              onchange="handleImageUpload(this)">
+            <div class="img-dropzone__icon">📷</div>
+            <div class="img-dropzone__text"><strong>Clique ou arraste</strong> para adicionar fotos<br>JPG, PNG, WebP • Máx. 5MB cada</div>
+          </div>
+          <div class="img-thumbnails" id="img-thumbnails"></div>
         </div>
 
         <div class="modal__divider" style="height:1px;background:var(--border);margin:16px 0"></div>
@@ -151,6 +161,7 @@
 
 <script src="../js/cart.js"></script>
 <script src="../js/admin.js"></script>
+<script src="../js/image-manager.js"></script>
 <script>
 requireAdmin();
 
@@ -235,6 +246,8 @@ function renderTable(produtos) {
 function openProductModal(id = null) {
   editingId = id;
   document.getElementById('modal-prod-title').textContent = id ? 'Editar Produto' : 'Novo Produto';
+  // Ocultar seção de imagens ao criar (precisa salvar primeiro)
+  document.getElementById('img-upload-section').style.display = 'none';
   if (!id) {
     document.getElementById('product-form').reset();
     renderMaterialFields();
@@ -262,6 +275,10 @@ async function editProduct(id) {
   document.getElementById('p-minimo').value = p.pedido_minimo || 15;
   document.getElementById('p-imagem').value = p.imagem_url || '';
   renderMaterialFields(p.variacoes || []);
+  // Mostrar seção de imagens (somente ao editar)
+  document.getElementById('img-upload-section').style.display = 'block';
+  await initImageManager(id);
+  initDropzone();
   document.getElementById('modal-produto').classList.add('open');
 }
 
@@ -294,6 +311,10 @@ async function saveProduct(e) {
   showToastAdmin('Produto salvo com sucesso!');
   closeProductModal();
   document.getElementById('p-ref').disabled = false;
+  // Aps criar, abrir edição para subir fotos
+  if (!editingId && data.id) {
+    setTimeout(() => editProduct(data.id), 400);
+  }
   loadProdutos();
 }
 

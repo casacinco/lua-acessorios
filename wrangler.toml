@@ -7,11 +7,14 @@ binding = "DB"
 database_name = "lua-acessorios-db"
 database_id = "3ee42ec7-0079-45bf-b393-2ff3dcb40890"
 
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "lua-acessorios-images"
+
 [vars]
 ADMIN_EMAIL = "luafotocorrosao@hotmail.com"
 FRONTEND_URL = "https://lua-acessorios.pages.dev"
 
 # Secrets (configure via: wrangler secret put NOME_DO_SECRET)
 # RESEND_API_KEY
-# ADMIN_PASSWORD_HASH
 # JWT_SECRET
