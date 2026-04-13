@@ -273,7 +273,6 @@ async function editProduct(id) {
   document.getElementById('p-tamanho').value = p.tamanho || '';
   document.getElementById('p-espessura').value = p.espessura || '';
   document.getElementById('p-minimo').value = p.pedido_minimo || 15;
-  document.getElementById('p-imagem').value = p.imagem_url || '';
   renderMaterialFields(p.variacoes || []);
   // Mostrar seção de imagens (somente ao editar)
   document.getElementById('img-upload-section').style.display = 'block';
