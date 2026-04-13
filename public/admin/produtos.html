@@ -296,10 +296,10 @@ async function saveProduct(e) {
     tamanho: document.getElementById('p-tamanho').value,
     espessura: document.getElementById('p-espessura').value,
     pedido_minimo: parseInt(document.getElementById('p-minimo').value) || 15,
-    imagem_url: document.getElementById('p-imagem').value || null,
     variacoes,
   };
 
+  const wasCreating = !editingId; // captura ANTES de fechar o modal
   const res = editingId
     ? await apiFetch(`/api/admin/produto/${editingId}`, { method: 'PUT', body: JSON.stringify(body) })
     : await apiFetch('/api/admin/produto', { method: 'POST', body: JSON.stringify(body) });
@@ -310,8 +310,8 @@ async function saveProduct(e) {
   showToastAdmin('Produto salvo com sucesso!');
   closeProductModal();
   document.getElementById('p-ref').disabled = false;
-  // Aps criar, abrir edição para subir fotos
-  if (!editingId && data.id) {
+  // Após criar, reabrir em modo edição para subir fotos
+  if (wasCreating && data.id) {
     setTimeout(() => editProduct(data.id), 400);
   }
   loadProdutos();
