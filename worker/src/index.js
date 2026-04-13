@@ -281,6 +281,18 @@ export default {
       return json({ token, email: admin.email });
     }
 
+    // POST /api/admin/setup (cria admin inicial — só funciona se não existe nenhum)
+    if (path === '/api/admin/setup' && method === 'POST') {
+      const existing = await env.DB.prepare('SELECT COUNT(*) as cnt FROM admin_users').first();
+      if (existing?.cnt > 0) return err('Admin já configurado', 409);
+      const body = await request.json();
+      const { email, senha } = body;
+      if (!email || !senha) return err('Email e senha obrigatórios');
+      const hash = await hashPassword(senha);
+      await env.DB.prepare('INSERT INTO admin_users (email, senha_hash) VALUES (?, ?)').bind(email, hash).run();
+      return json({ success: true });
+    }
+
     // ── ADMIN ROUTES (autenticadas) ───────────────────────────
 
     if (path.startsWith('/api/admin/')) {
@@ -368,17 +380,7 @@ export default {
         return json({ success: true });
       }
 
-      // POST /api/admin/setup (cria admin user — só funciona se não existe nenhum)
-      if (path === '/api/admin/setup' && method === 'POST') {
-        const existing = await env.DB.prepare('SELECT COUNT(*) as cnt FROM admin_users').first();
-        if (existing?.cnt > 0) return err('Admin já configurado', 409);
-        const body = await request.json();
-        const { email, senha } = body;
-        if (!email || !senha) return err('Email e senha obrigatórios');
-        const hash = await hashPassword(senha);
-        await env.DB.prepare('INSERT INTO admin_users (email, senha_hash) VALUES (?, ?)').bind(email, hash).run();
-        return json({ success: true });
-      }
+      // POST /api/admin/setup — moved outside auth block
 
       return err('Rota não encontrada', 404);
     }
