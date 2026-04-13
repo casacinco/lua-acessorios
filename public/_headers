@@ -1,25 +1,14 @@
-{
-  "version": 1,
-  "include": ["/*"],
-  "exclude": [],
-  "headers": [
-    {
-      "source": "*.html",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache" }
-      ]
-    },
-    {
-      "source": "css/*",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
-      ]
-    },
-    {
-      "source": "js/*",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
-      ]
-    }
-  ]
-}
+/*.html
+  Cache-Control: no-cache, must-revalidate
+
+/admin/*.html
+  Cache-Control: no-cache, must-revalidate
+
+/js/*
+  Cache-Control: no-cache, must-revalidate
+
+/css/*
+  Cache-Control: public, max-age=3600
+
+/logo-lua.webp
+  Cache-Control: public, max-age=86400

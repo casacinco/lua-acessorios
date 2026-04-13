@@ -197,6 +197,7 @@ function renderMaterialFields(variacoes = []) {
     const v = variacoes.find(v2 => v2.material === m.key);
     return `
       <div class="material-row">
+        <input type="hidden" id="vid-${m.fieldId}" value="${v?.id || ''}">
         <label>${m.nome}</label>
         <input type="number" class="form-control" id="preco-${m.fieldId}" step="0.01" min="0"
                placeholder="0,00" value="${v?.preco || ''}">
@@ -284,6 +285,7 @@ async function editProduct(id) {
 async function saveProduct(e) {
   e.preventDefault();
   const variacoes = MATERIAIS.map(m => ({
+    id: parseInt(document.getElementById(`vid-${m.fieldId}`)?.value) || undefined,
     material: m.key, material_nome: m.nome,
     preco: parseFloat(document.getElementById(`preco-${m.fieldId}`).value) || null,
     disponivel: document.getElementById(`disp-${m.fieldId}`).checked,

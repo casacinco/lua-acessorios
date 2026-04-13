@@ -385,16 +385,25 @@ export default {
       if (path.match(/^\/api\/admin\/produto\/\d+$/) && method === 'PUT') {
         const id = path.split('/').pop();
         const body = await request.json();
-        const { nome, tamanho, espessura, pedido_minimo, imagem_url, ativo, variacoes } = body;
+        const { nome, tamanho, espessura, pedido_minimo, ativo, variacoes } = body;
+
         await env.DB.prepare(
-          `UPDATE produtos SET nome=?, tamanho=?, espessura=?, pedido_minimo=?, imagem_url=?, ativo=? WHERE id=?`
-        ).bind(nome || null, tamanho || '', espessura || '', pedido_minimo || 15, imagem_url || null, ativo ?? 1, id).run();
+          `UPDATE produtos SET nome=?, tamanho=?, espessura=?, pedido_minimo=?, ativo=? WHERE id=?`
+        ).bind(nome || null, tamanho || '', espessura || '', pedido_minimo || 15, ativo ?? 1, id).run();
 
         if (variacoes?.length) {
           for (const v of variacoes) {
-            await env.DB.prepare(
-              `UPDATE variacoes_produto SET preco=?, disponivel=? WHERE id=?`
-            ).bind(v.preco || null, v.disponivel ? 1 : 0, v.id).run();
+            if (v.id) {
+              // Variação existente → UPDATE
+              await env.DB.prepare(
+                `UPDATE variacoes_produto SET preco=?, disponivel=? WHERE id=?`
+              ).bind(v.preco || null, v.disponivel ? 1 : 0, v.id).run();
+            } else {
+              // Variação nova → INSERT
+              await env.DB.prepare(
+                `INSERT OR IGNORE INTO variacoes_produto (produto_id, material, material_nome, preco, disponivel) VALUES (?, ?, ?, ?, ?)`
+              ).bind(id, v.material, v.material_nome, v.preco || null, v.disponivel ? 1 : 0).run();
+            }
           }
         }
         return json({ success: true });

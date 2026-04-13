@@ -112,10 +112,10 @@ function renderProducts(products) {
   grid.innerHTML = products.map(p => {
     const varDisp = (p.variacoes || []).filter(v => v.disponivel && v.preco);
     const menorPreco = varDisp.length ? Math.min(...varDisp.map(v => v.preco)) : null;
-    const imgHtml = p.imagem_url
-      ? `<img src="${p.imagem_url}" alt="${p.ref}" loading="lazy">`
+    const firstImg = (p.imagens && p.imagens[0]?.url) || p.imagem_url;
+    const imgHtml = firstImg
+      ? `<img src="${firstImg}" alt="${p.ref}" loading="lazy">`
       : `<span class="placeholder-icon">${CAT_ICONS[p.categoria_slug] || '🔗'}</span>`;
-
     const precosHtml = (p.variacoes || []).slice(0, 3).map(v => `
       <div class="price-tag ${!v.disponivel || !v.preco ? 'price-tag--unavailable' : ''}">
         <span class="price-tag__mat">${MATERIAL_LABELS[v.material] || v.material}</span>
@@ -141,11 +141,12 @@ function renderProducts(products) {
 }
 
 // ── Modal ─────────────────────────────────────────────────────
-function openModal(productId) {
+async function openModal(productId) {
   currentProduct = allProducts.find(p => p.id === productId);
   if (!currentProduct) return;
   currentVariacao = null;
 
+  // Abrir modal imediatamente com dados básicos
   document.getElementById('modal-ref').textContent = currentProduct.ref;
   document.getElementById('modal-title').textContent = currentProduct.nome || currentProduct.categoria_nome || currentProduct.ref;
   document.getElementById('modal-meta').innerHTML = `
@@ -154,12 +155,9 @@ function openModal(productId) {
     <span>📦 Mín. ${currentProduct.pedido_minimo || 15} un</span>
   `;
 
-  // Galeria de imagens
   const imgEl = document.getElementById('modal-img');
-  const imagens = currentProduct.imagens || [];
-  if (imagens.length > 0) {
-    renderGallery(imgEl, imagens, currentProduct);
-  } else if (currentProduct.imagem_url) {
+  // Placeholder inicial enquanto carrega
+  if (currentProduct.imagem_url) {
     imgEl.innerHTML = `<div class="modal-gallery"><img class="modal-gallery__img" src="${currentProduct.imagem_url}" alt="${currentProduct.ref}"></div>`;
   } else {
     imgEl.innerHTML = `<div class="modal-gallery"><span class="modal-gallery__no-img">${CAT_ICONS[currentProduct.categoria_slug] || '🔗'}</span></div>`;
@@ -170,8 +168,30 @@ function openModal(productId) {
   document.getElementById('modal-qty').min = 1;
   document.getElementById('modal-min-note').textContent = `Mín. ${minQty} un`;
 
+  renderMaterials(currentProduct.variacoes || []);
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Buscar produto completo (com imagens) em paralelo
+  try {
+    const res = await fetch(`${API_URL}/api/produto/${encodeURIComponent(currentProduct.ref)}`);
+    if (res.ok) {
+      const full = await res.json();
+      currentProduct = { ...currentProduct, ...full };
+      // Atualizar galeria
+      if (full.imagens?.length > 0) {
+        renderGallery(imgEl, full.imagens, full);
+      }
+      // Atualizar materiais (caso tenham mudado)
+      renderMaterials(full.variacoes || []);
+    }
+  } catch(e) { /* silencioso — já temos dados básicos */ }
+}
+
+function renderMaterials(variacoes) {
   const matsEl = document.getElementById('modal-materials');
-  matsEl.innerHTML = (currentProduct.variacoes || []).map(v => `
+  if (!matsEl) return;
+  matsEl.innerHTML = variacoes.map(v => `
     <div class="material-option ${!v.disponivel || !v.preco ? 'disabled' : ''}" 
          data-variacao="${v.id}"
          onclick="${v.disponivel && v.preco ? `selectMaterial(${v.id})` : ''}">
@@ -181,9 +201,6 @@ function openModal(productId) {
         ? `<div class="material-option__price">R$ ${v.preco.toFixed(2).replace('.',',')}</div>`
         : `<div class="material-option__unavail">Indisponível</div>`}
     </div>`).join('');
-
-  document.getElementById('modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
 }
 
 let galleryIndex = 0;
