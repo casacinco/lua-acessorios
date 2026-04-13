@@ -5,7 +5,7 @@ compatibility_date = "2024-09-23"
 [[d1_databases]]
 binding = "DB"
 database_name = "lua-acessorios-db"
-database_id = "PLACEHOLDER_REPLACE_AFTER_CREATE"
+database_id = "3ee42ec7-0079-45bf-b393-2ff3dcb40890"
 
 [vars]
 ADMIN_EMAIL = "luafotocorrosao@hotmail.com"

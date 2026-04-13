@@ -3,7 +3,7 @@
 // ============================================================
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8787'
-  : 'https://lua-acessorios-api.SEU_SUBDOMINIO.workers.dev';
+  : 'https://lua-acessorios-api.rodsgalvan.workers.dev';
 
 window.API_URL = API;
 
