@@ -112,7 +112,7 @@ function renderProducts(products) {
   grid.innerHTML = products.map(p => {
     const varDisp = (p.variacoes || []).filter(v => v.disponivel && v.preco);
     const menorPreco = varDisp.length ? Math.min(...varDisp.map(v => v.preco)) : null;
-    const firstImg = (p.imagens && p.imagens[0]?.url) || p.imagem_url;
+    const firstImg = p.primeira_imagem_url || p.imagem_url;
     const imgHtml = firstImg
       ? `<img src="${firstImg}" alt="${p.ref}" loading="lazy">`
       : `<span class="placeholder-icon">${CAT_ICONS[p.categoria_slug] || '🔗'}</span>`;

@@ -176,20 +176,29 @@ export default {
       const stmt = env.DB.prepare(query);
       const rows = params.length ? await stmt.bind(...params).all() : await stmt.all();
 
-      // Buscar variações
       const ids = rows.results.map(r => r.id);
       let variacoes = [];
+      let todasImagens = [];
+
       if (ids.length > 0) {
-        const vars = await env.DB.prepare(
-          `SELECT * FROM variacoes_produto WHERE produto_id IN (${ids.join(',')})`
-        ).all();
+        const inList = ids.join(',');
+        const [vars, imgs] = await Promise.all([
+          env.DB.prepare(`SELECT * FROM variacoes_produto WHERE produto_id IN (${inList})`).all(),
+          env.DB.prepare(`SELECT produto_id, r2_key FROM imagens_produto WHERE produto_id IN (${inList}) ORDER BY ordem ASC`).all(),
+        ]);
         variacoes = vars.results;
+        todasImagens = imgs.results;
       }
 
-      const produtos = rows.results.map(p => ({
-        ...p,
-        variacoes: variacoes.filter(v => v.produto_id === p.id),
-      }));
+      const baseUrl = new URL(request.url).origin;
+      const produtos = rows.results.map(p => {
+        const primeiraImg = todasImagens.find(img => img.produto_id === p.id);
+        return {
+          ...p,
+          variacoes: variacoes.filter(v => v.produto_id === p.id),
+          primeira_imagem_url: primeiraImg ? `${baseUrl}/api/imagem/${primeiraImg.r2_key}` : null,
+        };
+      });
 
       return json(produtos);
     }
