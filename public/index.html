@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lua Acessórios — Catálogo Atacado</title>
+  <meta name="description" content="Catálogo de acessórios em aço inox, aço dourado e latão para atacado. Chaveiros, anéis, pulseiras, plaquinhas e muito mais.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="container">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__brand">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="15" fill="#c8102e" opacity=".12"/>
+          <text x="8" y="22" font-size="18" fill="#c8102e">🌙</text>
+        </svg>
+        Lua Acessórios
+      </a>
+      <div class="navbar__nav">
+        <a href="index.html" class="navbar__link active">Catálogo</a>
+        <a href="pedido.html" class="navbar__link">Fazer Pedido</a>
+        <a href="https://wa.me/5519988352022" target="_blank" class="navbar__link">WhatsApp</a>
+      </div>
+      <a href="pedido.html" id="nav-cart-btn" class="navbar__cta">
+        🛒 Meu Pedido <span id="nav-cart-count" style="display:none;background:white;color:#c8102e;border-radius:999px;padding:0 6px;margin-left:4px;font-size:.75rem"></span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero__content">
+      <div class="hero__badge">✨ Atacado — Pedido Mínimo 15 unidades</div>
+      <h1 class="hero__title">Acessórios que <span>encantam</span></h1>
+      <p class="hero__subtitle">Chaveiros, anéis, pulseiras, plaquinhas e muito mais em aço inox, dourado e latão. Direto da fábrica para você.</p>
+      <div class="hero__actions">
+        <button class="btn-hero btn-hero--primary" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">
+          🔍 Ver Catálogo
+        </button>
+        <a href="pedido.html" class="btn-hero btn-hero--secondary">
+          🛒 Fazer Pedido
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="container">
+    <div class="stats-bar__inner">
+      <div class="stat">
+        <div class="stat__number" id="stat-produtos">117+</div>
+        <div class="stat__label">Produtos</div>
+      </div>
+      <div class="stat">
+        <div class="stat__number">8</div>
+        <div class="stat__label">Categorias</div>
+      </div>
+      <div class="stat">
+        <div class="stat__number">4</div>
+        <div class="stat__label">Materiais</div>
+      </div>
+      <div class="stat">
+        <div class="stat__number">🚚</div>
+        <div class="stat__label">Para todo Brasil</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTROS -->
+<div class="filters" id="catalog">
+  <div class="container">
+    <div class="filters__inner" id="filters-bar">
+      <button class="filter-btn active" data-cat="">Todos</button>
+      <!-- Categorias dinâmicas -->
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" class="search-input" id="search-input" placeholder="Buscar REF ou nome...">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CATÁLOGO -->
+<section class="catalog-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Produtos</h2>
+      <span class="product-count" id="product-count"></span>
+    </div>
+    <div class="product-grid" id="product-grid">
+      <!-- Skeletons -->
+      <div class="skeleton-card" style="height:300px"><div class="skeleton" style="height:100%"></div></div>
+      <div class="skeleton-card" style="height:300px"><div class="skeleton" style="height:100%"></div></div>
+      <div class="skeleton-card" style="height:300px"><div class="skeleton" style="height:100%"></div></div>
+      <div class="skeleton-card" style="height:300px"><div class="skeleton" style="height:100%"></div></div>
+      <div class="skeleton-card" style="height:300px"><div class="skeleton" style="height:100%"></div></div>
+      <div class="skeleton-card" style="height:300px"><div class="skeleton" style="height:100%"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CARRINHO FAB -->
+<button class="cart-fab" id="cart-fab" onclick="openCart()" aria-label="Abrir carrinho" style="display:none">
+  🛒
+  <span class="cart-fab__badge" id="fab-count">0</span>
+</button>
+
+<!-- DRAWER CARRINHO -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <h2>🛒 Meu Pedido</h2>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-body">
+    <div class="cart-empty">
+      <div style="font-size:3rem">🛍️</div>
+      <p>Seu pedido está vazio.<br>Adicione produtos do catálogo.</p>
+    </div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span class="cart-total__label">Total estimado</span>
+      <span class="cart-total__val" id="cart-total">R$ 0,00</span>
+    </div>
+    <button class="btn-checkout" onclick="goToCheckout()">
+      Continuar para o Pedido →
+    </button>
+  </div>
+</div>
+
+<!-- MODAL PRODUTO -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-box">
+    <div class="modal__img" id="modal-img">🔗</div>
+    <div class="modal__body">
+      <div class="modal__ref" id="modal-ref"></div>
+      <div class="modal__title" id="modal-title"></div>
+      <div class="modal__meta" id="modal-meta"></div>
+      <div class="modal__divider"></div>
+      <div class="modal__label">Selecione o material e preço:</div>
+      <div id="modal-materials"></div>
+      <div class="qty-control">
+        <label>Quantidade:</label>
+        <input type="number" class="input-qty" id="modal-qty" value="15" min="1">
+        <span class="qty-min" id="modal-min-note">Mín. 15 un</span>
+      </div>
+      <div class="modal__actions">
+        <button class="btn-modal-close" onclick="closeModal()">Cancelar</button>
+        <button class="btn-modal-add" onclick="addToCart()">🛒 Adicionar ao Pedido</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- FOOTER -->
+<footer style="background:#1a1a2e;color:rgba(255,255,255,.6);text-align:center;padding:32px 20px;font-size:.85rem">
+  <p style="font-family:'Playfair Display',serif;font-size:1.2rem;color:white;margin-bottom:8px">🌙 Lua Acessórios</p>
+  <p>WhatsApp: <a href="https://wa.me/5519988352022" style="color:#c8102e">(19) 98835-2022</a></p>
+  <p style="margin-top:8px">Pedido mínimo: 15 unidades por modelo • Envio para todo Brasil</p>
+</footer>
+
+<script src="js/cart.js"></script>
+<script src="js/catalog.js"></script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Lua Acessórios Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar__logo">
+      <div class="dot"></div>
+      Lua Acessórios
+    </div>
+    <nav class="sidebar__nav">
+      <a href="index.html" class="sidebar__item"><span>📊</span> Dashboard</a>
+      <a href="pedidos.html" class="sidebar__item"><span>📦</span> Pedidos</a>
+      <a href="produtos.html" class="sidebar__item"><span>🏷️</span> Produtos</a>
+      <a href="../index.html" class="sidebar__item" target="_blank"><span>🌐</span> Ver Site</a>
+    </nav>
+    <div class="sidebar__bottom">
+      <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:8px" id="admin-email-display"></div>
+      <button class="sidebar__item" onclick="logout()" style="color:rgba(255,255,255,.5)"><span>🚪</span> Sair</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1>Dashboard</h1>
+      <span style="font-size:.85rem;color:var(--text-muted)">Bem-vinda de volta! 👋</span>
+    </div>
+    <div class="admin-content">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--red">📦</div>
+          <div class="stat-card__val" id="stat-total">—</div>
+          <div class="stat-card__label">Pedidos no Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--yellow">⏳</div>
+          <div class="stat-card__val" id="stat-pendente">—</div>
+          <div class="stat-card__label">Pendentes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--blue">✅</div>
+          <div class="stat-card__val" id="stat-confirmado">—</div>
+          <div class="stat-card__label">Confirmados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--green">🚚</div>
+          <div class="stat-card__val" id="stat-enviado">—</div>
+          <div class="stat-card__label">Enviados</div>
+        </div>
+      </div>
+
+      <!-- Pedidos recentes -->
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Pedidos Recentes</h2>
+          <a href="pedidos.html" class="btn btn--secondary btn--sm">Ver todos →</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Cliente</th>
+                <th>Cidade / UF</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody id="recent-orders">
+              <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/cart.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+requireAdmin();
+
+async function loadDashboard() {
+  const res = await apiFetch('/api/admin/pedidos');
+  if (!res) return;
+  const pedidos = await res.json();
+
+  document.getElementById('stat-total').textContent = pedidos.length;
+  document.getElementById('stat-pendente').textContent = pedidos.filter(p => p.status === 'pendente').length;
+  document.getElementById('stat-confirmado').textContent = pedidos.filter(p => p.status === 'confirmado').length;
+  document.getElementById('stat-enviado').textContent = pedidos.filter(p => p.status === 'enviado').length;
+
+  const recent = pedidos.slice(0, 10);
+  document.getElementById('recent-orders').innerHTML = recent.length === 0
+    ? `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">Nenhum pedido ainda.</td></tr>`
+    : recent.map(p => `
+        <tr onclick="window.location.href='pedidos.html?id=${p.id}'" style="cursor:pointer">
+          <td><strong style="color:var(--brand)">${p.codigo}</strong></td>
+          <td>${p.nome_cliente}</td>
+          <td>${p.cidade} / ${p.estado}</td>
+          <td>${formatMoney(p.total)}</td>
+          <td><span class="badge badge--${p.status}">${STATUS_LABELS[p.status] || p.status}</span></td>
+          <td style="color:var(--text-muted);font-size:.82rem">${formatDate(p.criado_em)}</td>
+        </tr>`).join('');
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

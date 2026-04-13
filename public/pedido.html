@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fazer Pedido — Lua Acessórios</title>
+  <meta name="description" content="Finalize seu pedido atacado de acessórios Lua Acessórios.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__brand">
+        <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="#c8102e" opacity=".12"/><text x="8" y="22" font-size="18" fill="#c8102e">🌙</text></svg>
+        Lua Acessórios
+      </a>
+      <div class="navbar__nav">
+        <a href="index.html" class="navbar__link">Catálogo</a>
+        <a href="pedido.html" class="navbar__link active">Fazer Pedido</a>
+        <a href="https://wa.me/5519988352022" target="_blank" class="navbar__link">WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="order-page">
+  <div class="container">
+    <!-- Sem itens no carrinho -->
+    <div id="empty-cart-msg" style="display:none;text-align:center;padding:80px 20px">
+      <div style="font-size:4rem;margin-bottom:20px">🛒</div>
+      <h2 style="margin-bottom:12px">Seu pedido está vazio</h2>
+      <p style="color:var(--text-muted);margin-bottom:24px">Volte ao catálogo e escolha os produtos que deseja pedir.</p>
+      <a href="index.html" class="btn btn--primary" style="padding:12px 24px;font-size:1rem">← Ver Catálogo</a>
+    </div>
+
+    <div id="order-form-wrap">
+      <div style="margin-bottom:24px">
+        <a href="index.html" style="font-size:.85rem;color:var(--text-muted);display:inline-flex;align-items:center;gap:6px">← Continuar comprando</a>
+        <h1 style="font-size:1.6rem;font-weight:800;margin-top:8px">Finalizar Pedido</h1>
+      </div>
+
+      <div class="order-grid">
+        <!-- FORMULÁRIO -->
+        <div>
+          <form id="order-form" onsubmit="submitOrder(event)">
+            <div class="form-card">
+              <div class="form-card__title">👤 Seus Dados</div>
+              <div class="form-group">
+                <label>Nome completo <span>*</span></label>
+                <input type="text" class="form-control" id="f-nome" placeholder="Seu nome" required>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>WhatsApp <span>*</span></label>
+                  <input type="tel" class="form-control" id="f-whatsapp" placeholder="(00) 00000-0000" required>
+                </div>
+                <div class="form-group">
+                  <label>Estado <span>*</span></label>
+                  <select class="form-control" id="f-estado" required>
+                    <option value="">Selecione...</option>
+                    <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                    <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                    <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                    <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                    <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                    <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                    <option>SP</option><option>SE</option><option>TO</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Cidade <span>*</span></label>
+                <input type="text" class="form-control" id="f-cidade" placeholder="Sua cidade" required>
+              </div>
+              <div class="form-group">
+                <label>Endereço de entrega</label>
+                <input type="text" class="form-control" id="f-endereco" placeholder="Rua, número, bairro, CEP (opcional)">
+              </div>
+              <div class="form-group">
+                <label>Observações</label>
+                <textarea class="form-control" id="f-obs" rows="3" placeholder="Alguma observação sobre o pedido?"></textarea>
+              </div>
+            </div>
+
+            <!-- Itens do pedido em mobile -->
+            <div id="mobile-items" style="display:none" class="form-card" style="margin-top:16px">
+              <div class="form-card__title">📦 Itens do Pedido</div>
+              <div id="mobile-items-list"></div>
+            </div>
+          </form>
+        </div>
+
+        <!-- RESUMO -->
+        <div>
+          <div class="order-summary-card">
+            <div style="font-size:1rem;font-weight:700;margin-bottom:16px">📦 Resumo do Pedido</div>
+            <div id="summary-items"></div>
+            <div class="summary-total">
+              <span class="summary-total__label">Total Estimado</span>
+              <span class="summary-total__val" id="summary-total">R$ 0,00</span>
+            </div>
+            <button type="submit" form="order-form" class="btn-submit" id="btn-submit">
+              ✅ Enviar Pedido
+            </button>
+            <p style="font-size:.75rem;color:var(--text-muted);text-align:center;margin-top:12px">
+              Após o envio, entraremos em contato pelo WhatsApp para confirmar e combinar o frete.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<footer style="background:#1a1a2e;color:rgba(255,255,255,.6);text-align:center;padding:24px 20px;font-size:.85rem">
+  <p>🌙 Lua Acessórios — WhatsApp: <a href="https://wa.me/5519988352022" style="color:#c8102e">(19) 98835-2022</a></p>
+</footer>
+
+<script src="js/cart.js"></script>
+<script>
+const MATERIAL_LABELS = {
+  aco_inox: 'Aço Inox Polido', aco_dourado: 'Aço Dourado',
+  latao_bruto: 'Latão Bruto', latao_folheado: 'Latão Folheado',
+};
+
+function renderOrderSummary() {
+  const cart = getCart();
+  const summaryEl = document.getElementById('summary-items');
+  const totalEl = document.getElementById('summary-total');
+
+  if (cart.length === 0) {
+    document.getElementById('empty-cart-msg').style.display = 'block';
+    document.getElementById('order-form-wrap').style.display = 'none';
+    return;
+  }
+
+  const total = getTotal();
+  summaryEl.innerHTML = cart.map(item => `
+    <div class="summary-item">
+      <div class="summary-item__name">
+        <strong>${item.ref}</strong><br>
+        <span style="font-size:.8rem;color:var(--text-muted)">${item.material_nome}</span><br>
+        <span style="font-size:.8rem;color:var(--text-muted)">Qtd: ${item.quantidade} × R$ ${item.preco.toFixed(2).replace('.',',')}</span>
+      </div>
+      <div class="summary-item__val">R$ ${(item.preco * item.quantidade).toFixed(2).replace('.',',')}</div>
+    </div>
+  `).join('');
+  totalEl.textContent = `R$ ${total.toFixed(2).replace('.',',')}`;
+}
+
+async function submitOrder(e) {
+  e.preventDefault();
+  const cart = getCart();
+  if (!cart.length) { showToast('Carrinho vazio.', 'error'); return; }
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Enviando...';
+
+  const body = {
+    nome_cliente: document.getElementById('f-nome').value.trim(),
+    whatsapp: document.getElementById('f-whatsapp').value.trim(),
+    cidade: document.getElementById('f-cidade').value.trim(),
+    estado: document.getElementById('f-estado').value,
+    endereco: document.getElementById('f-endereco').value.trim(),
+    observacoes: document.getElementById('f-obs').value.trim(),
+    itens: cart.map(i => ({ variacao_id: i.variacao_id, quantidade: i.quantidade })),
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/api/pedido`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao enviar pedido');
+    clearCart();
+    window.location.href = `obrigado.html?codigo=${data.codigo}&total=${data.total}`;
+  } catch (err) {
+    showToast(err.message || 'Erro ao enviar. Tente novamente.', 'error');
+    btn.disabled = false;
+    btn.innerHTML = '✅ Enviar Pedido';
+  }
+}
+
+renderOrderSummary();
+</script>
+</body>
+</html>

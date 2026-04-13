@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedidos — Lua Acessórios Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="sidebar__logo"><div class="dot"></div>Lua Acessórios</div>
+    <nav class="sidebar__nav">
+      <a href="index.html" class="sidebar__item"><span>📊</span> Dashboard</a>
+      <a href="pedidos.html" class="sidebar__item"><span>📦</span> Pedidos</a>
+      <a href="produtos.html" class="sidebar__item"><span>🏷️</span> Produtos</a>
+      <a href="../index.html" class="sidebar__item" target="_blank"><span>🌐</span> Ver Site</a>
+    </nav>
+    <div class="sidebar__bottom">
+      <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:8px" id="admin-email-display"></div>
+      <button class="sidebar__item" onclick="logout()"><span>🚪</span> Sair</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1>Pedidos</h1>
+    </div>
+    <div class="admin-content">
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Todos os Pedidos</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select class="form-control" id="status-filter" style="width:auto;padding:8px 12px" onchange="loadPedidos()">
+              <option value="">Todos os status</option>
+              <option value="pendente">Pendente</option>
+              <option value="confirmado">Confirmado</option>
+              <option value="enviado">Enviado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Código</th><th>Cliente</th><th>WhatsApp</th>
+              <th>Cidade / UF</th><th>Total</th><th>Status</th><th>Data</th><th>Ações</th>
+            </tr></thead>
+            <tbody id="orders-table">
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Detalhes -->
+<div class="modal-admin" id="modal-pedido">
+  <div class="modal-admin__box">
+    <div class="modal-admin__head">
+      <h2 id="modal-pedido-title">Pedido</h2>
+      <button class="btn btn--secondary btn--sm" onclick="closeModalPedido()">✕</button>
+    </div>
+    <div class="modal-admin__body" id="modal-pedido-body"></div>
+    <div class="modal-admin__foot">
+      <select class="form-control" id="status-select" style="width:auto;padding:8px 12px">
+        <option value="pendente">Pendente</option>
+        <option value="confirmado">Confirmado</option>
+        <option value="enviado">Enviado</option>
+        <option value="cancelado">Cancelado</option>
+      </select>
+      <button class="btn btn--primary" onclick="updateStatus()">Salvar Status</button>
+      <button class="btn btn--secondary" onclick="closeModalPedido()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/cart.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+requireAdmin();
+let currentPedidoId = null;
+
+async function loadPedidos() {
+  const status = document.getElementById('status-filter').value;
+  const url = status ? `/api/admin/pedidos?status=${status}` : '/api/admin/pedidos';
+  const res = await apiFetch(url);
+  if (!res) return;
+  const pedidos = await res.json();
+  const tbody = document.getElementById('orders-table');
+  tbody.innerHTML = pedidos.length === 0
+    ? `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">Nenhum pedido encontrado.</td></tr>`
+    : pedidos.map(p => `
+        <tr>
+          <td><strong style="color:var(--brand)">${p.codigo}</strong></td>
+          <td>${p.nome_cliente}</td>
+          <td><a href="https://wa.me/55${p.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:#25d366">📱 ${p.whatsapp}</a></td>
+          <td>${p.cidade} / ${p.estado}</td>
+          <td>${formatMoney(p.total)}</td>
+          <td><span class="badge badge--${p.status}">${STATUS_LABELS[p.status]}</span></td>
+          <td style="color:var(--text-muted);font-size:.8rem">${formatDate(p.criado_em)}</td>
+          <td><button class="btn btn--secondary btn--sm" onclick="openPedido(${p.id})">Ver</button></td>
+        </tr>`).join('');
+}
+
+async function openPedido(id) {
+  currentPedidoId = id;
+  const res = await apiFetch(`/api/admin/pedido/${id}`);
+  if (!res) return;
+  const p = await res.json();
+  document.getElementById('modal-pedido-title').textContent = `Pedido ${p.codigo}`;
+  document.getElementById('status-select').value = p.status;
+  const itensHtml = (p.itens || []).map(i => `
+    <tr>
+      <td><strong>${i.ref}</strong></td>
+      <td>${i.material_nome}</td>
+      <td style="text-align:center">${i.quantidade}</td>
+      <td style="text-align:right">${formatMoney(i.preco_unitario)}</td>
+      <td style="text-align:right;font-weight:700">${formatMoney(i.subtotal)}</td>
+    </tr>`).join('');
+  document.getElementById('modal-pedido-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;font-size:.9rem">
+      <div><strong>Cliente:</strong> ${p.nome_cliente}</div>
+      <div><strong>WhatsApp:</strong> <a href="https://wa.me/55${p.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:#25d366">${p.whatsapp}</a></div>
+      <div><strong>Cidade:</strong> ${p.cidade} / ${p.estado}</div>
+      <div><strong>Data:</strong> ${formatDate(p.criado_em)}</div>
+      ${p.endereco ? `<div style="grid-column:1/-1"><strong>Endereço:</strong> ${p.endereco}</div>` : ''}
+      ${p.observacoes ? `<div style="grid-column:1/-1"><strong>Obs.:</strong> ${p.observacoes}</div>` : ''}
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+      <thead><tr style="background:var(--surface-2)">
+        <th style="padding:8px;text-align:left">REF</th>
+        <th style="padding:8px;text-align:left">Material</th>
+        <th style="padding:8px;text-align:center">Qtd</th>
+        <th style="padding:8px;text-align:right">Unit.</th>
+        <th style="padding:8px;text-align:right">Subtotal</th>
+      </tr></thead>
+      <tbody>${itensHtml}</tbody>
+      <tfoot><tr style="background:var(--brand-light);font-weight:700">
+        <td colspan="4" style="padding:10px;text-align:right">TOTAL</td>
+        <td style="padding:10px;text-align:right;color:var(--brand)">${formatMoney(p.total)}</td>
+      </tr></tfoot>
+    </table>`;
+  document.getElementById('modal-pedido').classList.add('open');
+}
+
+function closeModalPedido() {
+  document.getElementById('modal-pedido').classList.remove('open');
+  currentPedidoId = null;
+}
+
+async function updateStatus() {
+  if (!currentPedidoId) return;
+  const status = document.getElementById('status-select').value;
+  const res = await apiFetch(`/api/admin/pedido/${currentPedidoId}`, {
+    method: 'PATCH', body: JSON.stringify({ status }),
+  });
+  if (!res) return;
+  showToastAdmin('Status atualizado!');
+  closeModalPedido();
+  loadPedidos();
+}
+
+// Abrir pedido via URL ?id=
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('id')) openPedido(urlParams.get('id'));
+
+loadPedidos();
+</script>
+</body>
+</html>

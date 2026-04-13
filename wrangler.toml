@@ -1,0 +1,17 @@
+name = "lua-acessorios-api"
+main = "worker/src/index.js"
+compatibility_date = "2024-09-23"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lua-acessorios-db"
+database_id = "PLACEHOLDER_REPLACE_AFTER_CREATE"
+
+[vars]
+ADMIN_EMAIL = "luafotocorrosao@hotmail.com"
+FRONTEND_URL = "https://lua-acessorios.pages.dev"
+
+# Secrets (configure via: wrangler secret put NOME_DO_SECRET)
+# RESEND_API_KEY
+# ADMIN_PASSWORD_HASH
+# JWT_SECRET

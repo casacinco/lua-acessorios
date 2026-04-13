@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedido Recebido! — Lua Acessórios</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__brand">
+        <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="#c8102e" opacity=".12"/><text x="8" y="22" font-size="18" fill="#c8102e">🌙</text></svg>
+        Lua Acessórios
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="thanks-page">
+  <div class="thanks-card">
+    <div class="thanks-icon">✅</div>
+    <h1>Pedido Enviado!</h1>
+    <div class="code" id="order-code">LUA-2024-001</div>
+    <p>
+      Seu pedido foi recebido com sucesso! Em breve entraremos em contato pelo WhatsApp para confirmar e combinar o frete e pagamento.<br><br>
+      Guarde seu código de pedido para referência.
+    </p>
+    <a href="https://wa.me/5519988352022" class="btn-wpp" target="_blank">
+      📱 Falar no WhatsApp
+    </a>
+    <br>
+    <a href="index.html" class="btn-back">← Voltar ao Catálogo</a>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const codigo = params.get('codigo');
+  const total = params.get('total');
+  if (codigo) document.getElementById('order-code').textContent = codigo;
+  if (total) {
+    const p = document.querySelector('.thanks-card p');
+    p.innerHTML = `Total estimado: <strong style="color:var(--brand)">R$ ${parseFloat(total).toFixed(2).replace('.',',')}</strong><br><br>` + p.innerHTML;
+  }
+</script>
+</body>
+</html>

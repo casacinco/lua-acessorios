@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produtos — Lua Acessórios Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="sidebar__logo"><div class="dot"></div>Lua Acessórios</div>
+    <nav class="sidebar__nav">
+      <a href="index.html" class="sidebar__item"><span>📊</span> Dashboard</a>
+      <a href="pedidos.html" class="sidebar__item"><span>📦</span> Pedidos</a>
+      <a href="produtos.html" class="sidebar__item"><span>🏷️</span> Produtos</a>
+      <a href="../index.html" class="sidebar__item" target="_blank"><span>🌐</span> Ver Site</a>
+    </nav>
+    <div class="sidebar__bottom">
+      <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:8px" id="admin-email-display"></div>
+      <button class="sidebar__item" onclick="logout()"><span>🚪</span> Sair</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1>Produtos</h1>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn--secondary btn--sm" onclick="openImportModal()">📥 Importar CSV</button>
+        <button class="btn btn--primary btn--sm" onclick="openProductModal()">+ Novo Produto</button>
+      </div>
+    </div>
+    <div class="admin-content">
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Catálogo</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <select class="form-control" id="cat-filter" style="width:auto;padding:8px 12px" onchange="loadProdutos()">
+              <option value="">Todas categorias</option>
+            </select>
+            <input type="text" class="form-control" id="search-prod" placeholder="Buscar REF..." style="width:180px;padding:8px 12px" oninput="filterTable()">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>REF</th><th>Categoria</th><th>Tamanho</th><th>Mín.</th>
+              <th>Inox</th><th>Dourado</th><th>Latão</th><th>Status</th><th>Ações</th>
+            </tr></thead>
+            <tbody id="products-table">
+              <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Produto -->
+<div class="modal-admin" id="modal-produto">
+  <div class="modal-admin__box">
+    <div class="modal-admin__head">
+      <h2 id="modal-prod-title">Novo Produto</h2>
+      <button class="btn btn--secondary btn--sm" onclick="closeProductModal()">✕</button>
+    </div>
+    <div class="modal-admin__body">
+      <form id="product-form" onsubmit="saveProduct(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>REF <span style="color:var(--brand)">*</span></label>
+            <input type="text" class="form-control" id="p-ref" placeholder="Ex: PCH01" required>
+          </div>
+          <div class="form-group">
+            <label>Categoria <span style="color:var(--brand)">*</span></label>
+            <select class="form-control" id="p-categoria" required>
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nome / Descrição</label>
+          <input type="text" class="form-control" id="p-nome" placeholder="Nome descritivo (opcional)">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tamanho</label>
+            <input type="text" class="form-control" id="p-tamanho" placeholder="Ex: 2,0X3,6 mm">
+          </div>
+          <div class="form-group">
+            <label>Espessura</label>
+            <input type="text" class="form-control" id="p-espessura" placeholder="Ex: 0,8">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Pedido mínimo</label>
+            <input type="number" class="form-control" id="p-minimo" value="15" min="1">
+          </div>
+          <div class="form-group">
+            <label>URL da Imagem</label>
+            <input type="url" class="form-control" id="p-imagem" placeholder="https://...">
+          </div>
+        </div>
+
+        <div class="modal__divider" style="height:1px;background:var(--border);margin:16px 0"></div>
+        <div class="modal__label" style="font-weight:700;margin-bottom:12px">💰 Preços por Material</div>
+
+        <div class="material-row" style="margin-bottom:6px">
+          <span style="font-size:.8rem;font-weight:600;color:var(--text-muted)">Material</span>
+          <span style="font-size:.8rem;font-weight:600;color:var(--text-muted)">Preço (R$)</span>
+          <span style="font-size:.8rem;font-weight:600;color:var(--text-muted)">Disponível</span>
+        </div>
+        <div id="material-fields">
+          <!-- gerado por JS -->
+        </div>
+      </form>
+    </div>
+    <div class="modal-admin__foot">
+      <button class="btn btn--secondary" onclick="closeProductModal()">Cancelar</button>
+      <button class="btn btn--primary" type="submit" form="product-form">Salvar Produto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Importar CSV -->
+<div class="modal-admin" id="modal-import">
+  <div class="modal-admin__box" style="max-width:480px">
+    <div class="modal-admin__head">
+      <h2>Importar CSV</h2>
+      <button class="btn btn--secondary btn--sm" onclick="closeImportModal()">✕</button>
+    </div>
+    <div class="modal-admin__body">
+      <p style="font-size:.875rem;color:var(--text-muted);margin-bottom:16px">
+        O CSV deve ter as colunas: <code>ref, categoria, tamanho, espessura, pedido_minimo, preco_aco_inox, preco_aco_dourado, preco_latao_bruto, preco_latao_folheado</code>
+      </p>
+      <div class="form-group">
+        <label>Arquivo CSV</label>
+        <input type="file" class="form-control" id="csv-file" accept=".csv">
+      </div>
+      <div id="import-preview" style="font-size:.8rem;color:var(--text-muted)"></div>
+    </div>
+    <div class="modal-admin__foot">
+      <button class="btn btn--secondary" onclick="closeImportModal()">Cancelar</button>
+      <button class="btn btn--primary" onclick="importCSV()">📥 Importar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/cart.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+requireAdmin();
+
+const MATERIAIS = [
+  { key: 'aco_inox', nome: 'Aço Inox Polido', fieldId: 'inox' },
+  { key: 'aco_dourado', nome: 'Aço Dourado', fieldId: 'dourado' },
+  { key: 'latao_bruto', nome: 'Latão Bruto', fieldId: 'latao' },
+  { key: 'latao_folheado', nome: 'Latão Folheado', fieldId: 'folheado' },
+];
+
+let allProdutos = [];
+let categorias = [];
+let editingId = null;
+
+async function init() {
+  const [catRes] = await Promise.all([apiFetch('/api/categorias')]);
+  if (!catRes) return;
+  categorias = await catRes.json();
+
+  const catFilter = document.getElementById('cat-filter');
+  const catSelect = document.getElementById('p-categoria');
+  categorias.forEach(c => {
+    catFilter.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+    catSelect.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+  });
+
+  renderMaterialFields();
+  loadProdutos();
+}
+
+function renderMaterialFields(variacoes = []) {
+  document.getElementById('material-fields').innerHTML = MATERIAIS.map(m => {
+    const v = variacoes.find(v2 => v2.material === m.key);
+    return `
+      <div class="material-row">
+        <label>${m.nome}</label>
+        <input type="number" class="form-control" id="preco-${m.fieldId}" step="0.01" min="0"
+               placeholder="0,00" value="${v?.preco || ''}">
+        <label class="toggle">
+          <input type="checkbox" id="disp-${m.fieldId}" ${!v || v.disponivel ? 'checked' : ''}>
+          <span class="toggle__slider"></span>
+        </label>
+      </div>`;
+  }).join('');
+}
+
+async function loadProdutos() {
+  const res = await apiFetch('/api/admin/produtos');
+  if (!res) return;
+  allProdutos = await res.json();
+  filterTable();
+}
+
+function filterTable() {
+  const catId = document.getElementById('cat-filter').value;
+  const q = document.getElementById('search-prod').value.toLowerCase();
+  let filtered = allProdutos;
+  if (catId) filtered = filtered.filter(p => String(p.categoria_id) === catId);
+  if (q) filtered = filtered.filter(p => p.ref.toLowerCase().includes(q));
+  renderTable(filtered);
+}
+
+function renderTable(produtos) {
+  document.getElementById('products-table').innerHTML = produtos.length === 0
+    ? `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted)">Nenhum produto encontrado.</td></tr>`
+    : produtos.map(p => `
+        <tr>
+          <td><strong>${p.ref}</strong></td>
+          <td>${p.categoria_nome || '—'}</td>
+          <td style="font-size:.8rem;color:var(--text-muted)">${p.tamanho || '—'}</td>
+          <td style="text-align:center">${p.pedido_minimo}</td>
+          <td style="color:var(--brand);font-weight:600">${p.preco_aco_inox ? 'R$ ' + parseFloat(p.preco_aco_inox).toFixed(2).replace('.',',') : '—'}</td>
+          <td style="color:var(--gold)">${p.preco_aco_dourado ? 'R$ ' + parseFloat(p.preco_aco_dourado).toFixed(2).replace('.',',') : '—'}</td>
+          <td style="color:var(--steel)">${p.preco_latao_bruto ? 'R$ ' + parseFloat(p.preco_latao_bruto).toFixed(2).replace('.',',') : '—'}</td>
+          <td><span class="badge ${p.ativo ? 'badge--confirmado' : 'badge--cancelado'}">${p.ativo ? 'Ativo' : 'Inativo'}</span></td>
+          <td>
+            <button class="btn btn--secondary btn--sm" onclick="editProduct(${p.id})">✏️ Editar</button>
+          </td>
+        </tr>`).join('');
+}
+
+function openProductModal(id = null) {
+  editingId = id;
+  document.getElementById('modal-prod-title').textContent = id ? 'Editar Produto' : 'Novo Produto';
+  if (!id) {
+    document.getElementById('product-form').reset();
+    renderMaterialFields();
+  }
+  document.getElementById('modal-produto').classList.add('open');
+}
+
+function closeProductModal() {
+  document.getElementById('modal-produto').classList.remove('open');
+  editingId = null;
+}
+
+async function editProduct(id) {
+  const res = await apiFetch(`/api/produto/${allProdutos.find(p=>p.id===id)?.ref}`);
+  if (!res) return;
+  const p = await res.json();
+  editingId = id;
+  document.getElementById('modal-prod-title').textContent = 'Editar Produto';
+  document.getElementById('p-ref').value = p.ref;
+  document.getElementById('p-ref').disabled = true;
+  document.getElementById('p-categoria').value = p.categoria_id;
+  document.getElementById('p-nome').value = p.nome || '';
+  document.getElementById('p-tamanho').value = p.tamanho || '';
+  document.getElementById('p-espessura').value = p.espessura || '';
+  document.getElementById('p-minimo').value = p.pedido_minimo || 15;
+  document.getElementById('p-imagem').value = p.imagem_url || '';
+  renderMaterialFields(p.variacoes || []);
+  document.getElementById('modal-produto').classList.add('open');
+}
+
+async function saveProduct(e) {
+  e.preventDefault();
+  const variacoes = MATERIAIS.map(m => ({
+    material: m.key, material_nome: m.nome,
+    preco: parseFloat(document.getElementById(`preco-${m.fieldId}`).value) || null,
+    disponivel: document.getElementById(`disp-${m.fieldId}`).checked,
+  }));
+
+  const body = {
+    ref: document.getElementById('p-ref').value.toUpperCase(),
+    categoria_id: parseInt(document.getElementById('p-categoria').value),
+    nome: document.getElementById('p-nome').value,
+    tamanho: document.getElementById('p-tamanho').value,
+    espessura: document.getElementById('p-espessura').value,
+    pedido_minimo: parseInt(document.getElementById('p-minimo').value) || 15,
+    imagem_url: document.getElementById('p-imagem').value || null,
+    variacoes,
+  };
+
+  const res = editingId
+    ? await apiFetch(`/api/admin/produto/${editingId}`, { method: 'PUT', body: JSON.stringify(body) })
+    : await apiFetch('/api/admin/produto', { method: 'POST', body: JSON.stringify(body) });
+
+  if (!res) return;
+  const data = await res.json();
+  if (!res.ok) { showToastAdmin(data.error || 'Erro ao salvar.', 'error'); return; }
+  showToastAdmin('Produto salvo com sucesso!');
+  closeProductModal();
+  document.getElementById('p-ref').disabled = false;
+  loadProdutos();
+}
+
+function openImportModal() { document.getElementById('modal-import').classList.add('open'); }
+function closeImportModal() { document.getElementById('modal-import').classList.remove('open'); }
+
+async function importCSV() {
+  const file = document.getElementById('csv-file').files[0];
+  if (!file) { showToastAdmin('Selecione um arquivo CSV.', 'error'); return; }
+  const text = await file.text();
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  let imported = 0, errors = 0;
+
+  for (let i = 1; i < lines.length; i++) {
+    const row = lines[i].split(',').map(v => v.trim());
+    const obj = {};
+    headers.forEach((h, idx) => obj[h] = row[idx] || '');
+    const catObj = categorias.find(c => c.nome.toLowerCase() === (obj.categoria || '').toLowerCase());
+    if (!obj.ref || !catObj) { errors++; continue; }
+    const variacoes = [
+      { material:'aco_inox', material_nome:'Aço Inox Polido', preco: parseFloat(obj.preco_aco_inox) || null, disponivel: !!parseFloat(obj.preco_aco_inox) },
+      { material:'aco_dourado', material_nome:'Aço Dourado', preco: parseFloat(obj.preco_aco_dourado) || null, disponivel: !!parseFloat(obj.preco_aco_dourado) },
+      { material:'latao_bruto', material_nome:'Latão Bruto', preco: parseFloat(obj.preco_latao_bruto) || null, disponivel: !!parseFloat(obj.preco_latao_bruto) },
+      { material:'latao_folheado', material_nome:'Latão Folheado', preco: parseFloat(obj.preco_latao_folheado) || null, disponivel: !!parseFloat(obj.preco_latao_folheado) },
+    ];
+    try {
+      await apiFetch('/api/admin/produto', {
+        method: 'POST',
+        body: JSON.stringify({ ref: obj.ref.toUpperCase(), categoria_id: catObj.id, tamanho: obj.tamanho, espessura: obj.espessura, pedido_minimo: parseInt(obj.pedido_minimo) || 15, variacoes }),
+      });
+      imported++;
+    } catch { errors++; }
+  }
+  showToastAdmin(`Importados: ${imported} | Erros: ${errors}`);
+  closeImportModal();
+  loadProdutos();
+}
+
+init();
+</script>
+</body>
+</html>
