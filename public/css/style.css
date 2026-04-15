@@ -7,10 +7,10 @@
 /* ── Tokens — Lua Acessórios Design System ──────────────────── */
 :root {
   /* Cores da logo: Rosa suave + Dourado quente */
-  --brand:        #c4727a;
-  --brand-dark:   #a45860;
-  --brand-light:  #fdf1f2;
-  --brand-mid:    #f0c0c4;
+  --brand:        #f9abac;
+  --brand-dark:   #e08890;
+  --brand-light:  #fff0f0;
+  --brand-mid:    #fdd4d5;
   --gold:         #b8922a;
   --gold-light:   #fdf8ee;
   --steel:        #7c6b6e;
@@ -108,7 +108,7 @@ button, input, select, textarea { font: inherit; }
 
 /* ── Hero — warm luxury gradient ───────────────────────────── */
 .hero {
-  background: linear-gradient(140deg, #221018 0%, #4a1f2e 40%, #7d4558 70%, var(--brand) 100%);
+  background: linear-gradient(140deg, #2a1020 0%, #5a2040 60%, var(--brand) 100%);
   padding: 28px 0;
   position: relative; overflow: hidden;
 }
