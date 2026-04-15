@@ -63,8 +63,7 @@ function renderFilters(categorias) {
   // Botão "Todos" + categorias
   const btns = [`<button class="filter-btn active" data-cat="">Todos</button>`];
   categorias.forEach(cat => {
-    const icon = CAT_ICONS[cat.slug] || '✦';
-    btns.push(`<button class="filter-btn" data-cat="${cat.slug}">${icon} ${cat.nome}</button>`);
+    btns.push(`<button class="filter-btn" data-cat="${cat.slug}">${cat.nome}</button>`);
   });
   btns.forEach(html => {
     const div = document.createElement('div');
