@@ -269,10 +269,11 @@ export default {
       const codigo = await gerarCodigo(env.DB);
 
       // Inserir pedido
+      const criado_em = nowSP().toISOString().slice(0, 19).replace('T', ' ');
       const pedidoResult = await env.DB.prepare(
-        `INSERT INTO pedidos (codigo, nome_cliente, whatsapp, cidade, estado, endereco, observacoes, total)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(codigo, nome_cliente, whatsapp, cidade, estado, endereco || '', observacoes || '', total).run();
+        `INSERT INTO pedidos (codigo, nome_cliente, whatsapp, cidade, estado, endereco, observacoes, total, criado_em)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(codigo, nome_cliente, whatsapp, cidade, estado, endereco || '', observacoes || '', total, criado_em).run();
 
       const pedidoId = pedidoResult.meta.last_row_id;
 
