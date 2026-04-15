@@ -374,16 +374,22 @@ export default {
         return json(rows.results);
       }
 
+      // GET /api/admin/produto/next-ordem
+      if (path === '/api/admin/produto/next-ordem' && method === 'GET') {
+        const row = await env.DB.prepare('SELECT COALESCE(MAX(ordem), 0) + 1 as next FROM produtos').first();
+        return json({ next: row?.next ?? 1 });
+      }
+
       // POST /api/admin/produto
       if (path === '/api/admin/produto' && method === 'POST') {
         const body = await request.json();
-        const { ref, categoria_id, nome, tamanho, espessura, pedido_minimo, imagem_url, variacoes } = body;
+        const { ref, categoria_id, nome, tamanho, espessura, pedido_minimo, imagem_url, ordem, variacoes } = body;
         if (!ref || !categoria_id) return err('ref e categoria_id obrigatórios');
 
         const r = await env.DB.prepare(
-          `INSERT INTO produtos (ref, categoria_id, nome, tamanho, espessura, pedido_minimo, imagem_url)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
-        ).bind(ref, categoria_id, nome || null, tamanho || '', espessura || '', pedido_minimo || 15, imagem_url || null).run();
+          `INSERT INTO produtos (ref, categoria_id, nome, tamanho, espessura, pedido_minimo, imagem_url, ordem)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(ref, categoria_id, nome || null, tamanho || '', espessura || '', pedido_minimo || 15, imagem_url || null, ordem ?? 0).run();
         const pid = r.meta.last_row_id;
 
         if (variacoes?.length) {
@@ -400,11 +406,11 @@ export default {
       if (path.match(/^\/api\/admin\/produto\/\d+$/) && method === 'PUT') {
         const id = path.split('/').pop();
         const body = await request.json();
-        const { nome, tamanho, espessura, pedido_minimo, ativo, variacoes } = body;
+        const { ref, nome, tamanho, espessura, pedido_minimo, ativo, ordem, variacoes } = body;
 
         await env.DB.prepare(
-          `UPDATE produtos SET nome=?, tamanho=?, espessura=?, pedido_minimo=?, ativo=? WHERE id=?`
-        ).bind(nome || null, tamanho || '', espessura || '', pedido_minimo || 15, ativo ?? 1, id).run();
+          `UPDATE produtos SET ref=?, nome=?, tamanho=?, espessura=?, pedido_minimo=?, ativo=?, ordem=? WHERE id=?`
+        ).bind(ref || null, nome || null, tamanho || '', espessura || '', pedido_minimo || 15, ativo ?? 1, ordem ?? 0, id).run();
 
         if (variacoes?.length) {
           for (const v of variacoes) {

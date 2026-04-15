@@ -98,6 +98,10 @@
             <label>Pedido mínimo</label>
             <input type="number" class="form-control" id="p-minimo" value="15" min="1">
           </div>
+          <div class="form-group">
+            <label>Ordem <span style="color:var(--brand)">*</span></label>
+            <input type="number" class="form-control" id="p-ordem" min="0" required>
+          </div>
         </div>
 
         <div class="modal__divider" style="height:1px;background:var(--border);margin:16px 0"></div>
@@ -253,6 +257,9 @@ function openProductModal(id = null) {
   if (!id) {
     document.getElementById('product-form').reset();
     renderMaterialFields();
+    apiFetch('/api/admin/produto/next-ordem').then(r => r?.json()).then(d => {
+      if (d?.next) document.getElementById('p-ordem').value = d.next;
+    });
   }
   document.getElementById('modal-produto').classList.add('open');
 }
@@ -275,6 +282,7 @@ async function editProduct(id) {
   document.getElementById('p-tamanho').value = p.tamanho || '';
   document.getElementById('p-espessura').value = p.espessura || '';
   document.getElementById('p-minimo').value = p.pedido_minimo || 15;
+  document.getElementById('p-ordem').value = p.ordem ?? 0;
   renderMaterialFields(p.variacoes || []);
   // Mostrar seção de imagens (somente ao editar)
   document.getElementById('img-upload-section').style.display = 'block';
@@ -299,6 +307,7 @@ async function saveProduct(e) {
     tamanho: document.getElementById('p-tamanho').value,
     espessura: document.getElementById('p-espessura').value,
     pedido_minimo: parseInt(document.getElementById('p-minimo').value) || 15,
+    ordem: parseInt(document.getElementById('p-ordem').value) || 0,
     variacoes,
   };
 
