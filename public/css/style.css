@@ -101,10 +101,10 @@ button, input, select, textarea { font: inherit; }
   font-size: 0.75rem; font-weight: 700;
   letter-spacing: .08em; text-transform: uppercase;
   transition: all var(--transition);
-  box-shadow: 0 3px 12px rgba(196,114,122,.35);
+  box-shadow: 0 3px 12px rgba(249,171,172,.35);
   display: flex; align-items: center; gap: 6px;
 }
-.navbar__cta:hover { background: var(--brand-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(196,114,122,.4); }
+.navbar__cta:hover { background: var(--brand-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(249,171,172,.4); }
 
 /* ── Hero — warm luxury gradient ───────────────────────────── */
 .hero {
@@ -153,10 +153,10 @@ button, input, select, textarea { font: inherit; }
   cursor: pointer; border: none;
 }
 .btn-hero--primary {
-  background: white; color: var(--brand);
-  box-shadow: 0 4px 20px rgba(0,0,0,.25);
+  background: #f9abac; color: #2d1520;
+  box-shadow: 0 4px 20px rgba(249,171,172,.45);
 }
-.btn-hero--primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,.3); }
+.btn-hero--primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(249,171,172,.55); }
 .btn-hero--secondary {
   background: rgba(255,255,255,.12); color: white;
   border: 1.5px solid rgba(255,255,255,.35);
@@ -205,7 +205,7 @@ button, input, select, textarea { font: inherit; }
 .filter-btn:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-light); }
 .filter-btn.active {
   background: var(--brand); border-color: var(--brand);
-  color: white; box-shadow: 0 3px 12px rgba(196,114,122,.35);
+  color: white; box-shadow: 0 3px 12px rgba(249,171,172,.35);
 }
 .search-wrap {
   margin-left: auto; flex-shrink: 0;
@@ -309,7 +309,7 @@ button, input, select, textarea { font: inherit; }
   cursor: pointer; transition: all var(--transition);
   box-shadow: 0 3px 10px rgba(196,114,122,.3);
 }
-.btn-add:hover { background: var(--brand-dark); box-shadow: 0 5px 16px rgba(196,114,122,.45); }
+.btn-add:hover { background: var(--brand-dark); box-shadow: 0 5px 16px rgba(249,171,172,.45); }
 .btn-add:active { transform: scale(0.98); }
 
 /* ── Carrinho flutuante ─────────────────────────────────────── */
@@ -416,9 +416,9 @@ button, input, select, textarea { font: inherit; }
   letter-spacing: .1em; text-transform: uppercase;
   cursor: pointer; transition: all var(--transition);
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  box-shadow: 0 4px 16px rgba(196,114,122,.35);
+  box-shadow: 0 4px 16px rgba(249,171,172,.35);
 }
-.btn-checkout:hover { background: var(--brand-dark); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(196,114,122,.45); }
+.btn-checkout:hover { background: var(--brand-dark); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(249,171,172,.45); }
 
 /* ── Modal de Produto ───────────────────────────────────────── */
 .modal-overlay {
@@ -491,9 +491,9 @@ button, input, select, textarea { font: inherit; }
   letter-spacing: .1em; text-transform: uppercase;
   cursor: pointer; transition: all var(--transition);
   display: flex; align-items: center; justify-content: center; gap: 6px;
-  box-shadow: 0 3px 12px rgba(196,114,122,.35);
+  box-shadow: 0 3px 12px rgba(249,171,172,.35);
 }
-.btn-modal-add:hover { background: var(--brand-dark); box-shadow: 0 6px 20px rgba(196,114,122,.45); }
+.btn-modal-add:hover { background: var(--brand-dark); box-shadow: 0 6px 20px rgba(249,171,172,.45); }
 .btn-modal-close {
   background: var(--surface-2); color: var(--text-muted);
   border: 1.5px solid var(--border); border-radius: var(--radius-pill);
@@ -560,9 +560,9 @@ button, input, select, textarea { font: inherit; }
   letter-spacing: .1em; text-transform: uppercase;
   cursor: pointer; margin-top: 20px; transition: all var(--transition);
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  box-shadow: 0 4px 16px rgba(196,114,122,.35);
+  box-shadow: 0 4px 16px rgba(249,171,172,.35);
 }
-.btn-submit:hover { background: var(--brand-dark); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(196,114,122,.45); }
+.btn-submit:hover { background: var(--brand-dark); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(249,171,172,.45); }
 .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
 /* ── Página de Obrigado ─────────────────────────────────────── */
