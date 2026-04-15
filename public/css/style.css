@@ -109,7 +109,7 @@ button, input, select, textarea { font: inherit; }
 /* ── Hero — warm luxury gradient ───────────────────────────── */
 .hero {
   background: linear-gradient(140deg, #3d1520 0%, #6b2535 40%, #9b4455 70%, var(--brand) 100%);
-  padding: 72px 0 80px;
+  padding: 58px 0 64px;
   position: relative; overflow: hidden;
 }
 .hero::before {
