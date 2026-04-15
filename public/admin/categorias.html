@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Categorias — Lua Acessórios Admin</title>
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .drag-list { list-style: none; padding: 0; margin: 0; }
+    .drag-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      background: white; cursor: grab; user-select: none;
+      transition: background .15s;
+    }
+    .drag-item:last-child { border-bottom: none; }
+    .drag-item:hover { background: var(--brand-light); }
+    .drag-item.dragging { opacity: .4; background: var(--brand-light); cursor: grabbing; }
+    .drag-item.drag-over { border-top: 2px solid var(--brand); }
+    .drag-handle { color: var(--text-muted); font-size: 1.1rem; flex-shrink: 0; }
+    .drag-item__info { flex: 1; }
+    .drag-item__nome { font-weight: 600; }
+    .drag-item__slug { font-size: .8rem; color: var(--text-muted); }
+    .save-order-bar {
+      display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--brand); color: white; padding: 12px 24px; border-radius: 999px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.2); gap: 12px; align-items: center;
+      font-size: .9rem; font-weight: 600; z-index: 100;
+    }
+    .save-order-bar.visible { display: flex; }
+  </style>
 </head>
 <body>
 <div class="admin-layout">
@@ -31,26 +55,22 @@
     <div class="admin-content">
       <div class="table-card">
         <div class="table-header">
-          <h2>Categorias cadastradas</h2>
+          <h2>Ordem do menu</h2>
+          <span style="font-size:.8rem;color:var(--text-muted)">Arraste para reordenar</span>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Slug</th>
-                <th>Ordem</th>
-                <th style="text-align:right">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="cat-table-body">
-              <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted)">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <ul class="drag-list" id="drag-list">
+          <li style="text-align:center;padding:32px;color:var(--text-muted)">Carregando...</li>
+        </ul>
       </div>
     </div>
   </main>
+</div>
+
+<!-- Barra flutuante de salvar -->
+<div class="save-order-bar" id="save-bar">
+  <span>Ordem alterada</span>
+  <button class="btn btn--sm" style="background:white;color:var(--brand);border:none;font-weight:700" onclick="saveOrder()">Salvar</button>
+  <button class="btn btn--sm" style="background:rgba(255,255,255,.2);color:white;border:none" onclick="cancelOrder()">Cancelar</button>
 </div>
 
 <!-- MODAL -->
@@ -65,10 +85,6 @@
       <label>Slug <span>*</span></label>
       <input type="text" class="form-control" id="m-slug" placeholder="Ex: chaveiros">
       <small style="color:var(--text-muted);font-size:.75rem">Usado na URL. Só letras minúsculas, números e hífens.</small>
-    </div>
-    <div class="form-group">
-      <label>Ordem de exibição</label>
-      <input type="number" class="form-control" id="m-ordem" placeholder="0" min="0">
     </div>
     <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px">
       <button class="btn btn--secondary" onclick="closeModal()">Cancelar</button>
@@ -86,48 +102,111 @@ requireAdmin();
 
 let editingId = null;
 let categorias = [];
+let originalOrder = [];
+let orderChanged = false;
 
 async function loadCategorias() {
   const res = await apiFetch('/api/categorias');
   if (!res) return;
   categorias = await res.json();
+  originalOrder = categorias.map(c => c.id);
+  orderChanged = false;
+  document.getElementById('save-bar').classList.remove('visible');
   render();
 }
 
 function render() {
-  const tbody = document.getElementById('cat-table-body');
+  const list = document.getElementById('drag-list');
   if (!categorias.length) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted)">Nenhuma categoria cadastrada.</td></tr>`;
+    list.innerHTML = `<li style="text-align:center;padding:32px;color:var(--text-muted)">Nenhuma categoria cadastrada.</li>`;
     return;
   }
-  tbody.innerHTML = categorias.map(c => `
-    <tr>
-      <td><strong>${c.nome}</strong></td>
-      <td style="color:var(--text-muted);font-size:.85rem">${c.slug}</td>
-      <td>${c.ordem}</td>
-      <td style="text-align:right">
-        <button class="btn btn--secondary btn--sm" onclick="openModal(${c.id})" style="margin-right:6px">Editar</button>
+  list.innerHTML = categorias.map(c => `
+    <li class="drag-item" draggable="true" data-id="${c.id}">
+      <span class="drag-handle">☰</span>
+      <div class="drag-item__info">
+        <div class="drag-item__nome">${c.nome}</div>
+        <div class="drag-item__slug">${c.slug}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn--secondary btn--sm" onclick="openModal(${c.id})">Editar</button>
         <button class="btn btn--sm" style="background:#fee2e2;color:#dc2626;border:none" onclick="deleteCategoria(${c.id},'${c.nome}')">Excluir</button>
-      </td>
-    </tr>
+      </div>
+    </li>
   `).join('');
+  initDrag();
 }
 
+// ── Drag & Drop ───────────────────────────────────────────────
+let dragSrc = null;
+
+function initDrag() {
+  const items = document.querySelectorAll('.drag-item');
+  items.forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragSrc = item;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('drag-over'));
+      if (item !== dragSrc) item.classList.add('drag-over');
+    });
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      if (dragSrc && dragSrc !== item) {
+        const list = document.getElementById('drag-list');
+        const allItems = [...list.querySelectorAll('.drag-item')];
+        const srcIdx = allItems.indexOf(dragSrc);
+        const tgtIdx = allItems.indexOf(item);
+        if (srcIdx < tgtIdx) list.insertBefore(dragSrc, item.nextSibling);
+        else list.insertBefore(dragSrc, item);
+        checkOrderChanged();
+      }
+    });
+  });
+}
+
+function checkOrderChanged() {
+  const currentOrder = [...document.querySelectorAll('.drag-item')].map(i => parseInt(i.dataset.id));
+  orderChanged = currentOrder.some((id, i) => id !== originalOrder[i]);
+  document.getElementById('save-bar').classList.toggle('visible', orderChanged);
+}
+
+async function saveOrder() {
+  const items = [...document.querySelectorAll('.drag-item')];
+  const ordem = items.map((item, i) => ({ id: parseInt(item.dataset.id), ordem: i }));
+  const res = await apiFetch('/api/admin/categorias/reordenar', {
+    method: 'POST',
+    body: JSON.stringify({ ordem }),
+  });
+  if (!res) return;
+  showToastAdmin('Ordem salva com sucesso!');
+  loadCategorias();
+}
+
+function cancelOrder() {
+  loadCategorias();
+}
+
+// ── Modal ─────────────────────────────────────────────────────
 function openModal(id = null) {
   editingId = id;
-  const overlay = document.getElementById('modal-overlay');
-  overlay.style.display = 'flex';
+  document.getElementById('modal-overlay').style.display = 'flex';
   if (id) {
     const cat = categorias.find(c => c.id === id);
     document.getElementById('modal-title').textContent = 'Editar Categoria';
     document.getElementById('m-nome').value = cat.nome;
     document.getElementById('m-slug').value = cat.slug;
-    document.getElementById('m-ordem').value = cat.ordem;
   } else {
     document.getElementById('modal-title').textContent = 'Nova Categoria';
     document.getElementById('m-nome').value = '';
     document.getElementById('m-slug').value = '';
-    document.getElementById('m-ordem').value = '';
     document.getElementById('m-nome').addEventListener('input', autoSlug);
   }
 }
@@ -150,8 +229,15 @@ function closeModal() {
 async function saveCategoria() {
   const nome = document.getElementById('m-nome').value.trim();
   const slug = document.getElementById('m-slug').value.trim();
-  const ordem = parseInt(document.getElementById('m-ordem').value) || 0;
   if (!nome || !slug) { showToastAdmin('Nome e slug são obrigatórios', 'error'); return; }
+
+  // Manter a ordem atual ao editar; nova categoria vai para o final
+  let ordem = 0;
+  if (editingId) {
+    ordem = categorias.find(c => c.id === editingId)?.ordem ?? 0;
+  } else {
+    ordem = categorias.length;
+  }
 
   const url = editingId ? `/api/admin/categoria/${editingId}` : '/api/admin/categoria';
   const method = editingId ? 'PUT' : 'POST';

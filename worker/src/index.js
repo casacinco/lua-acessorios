@@ -176,7 +176,7 @@ export default {
       const params = [];
       if (cat) { query += ` AND c.slug = ?`; params.push(cat); }
       if (q) { query += ` AND (p.ref LIKE ? OR p.nome LIKE ?)`; params.push(`%${q}%`, `%${q}%`); }
-      query += ' ORDER BY p.ref';
+      query += ' ORDER BY p.ordem, p.ref';
 
       const stmt = env.DB.prepare(query);
       const rows = params.length ? await stmt.bind(...params).all() : await stmt.all();
@@ -504,6 +504,15 @@ export default {
         const imgId = path.split('/')[4];
         const { ordem } = await request.json();
         await env.DB.prepare('UPDATE imagens_produto SET ordem = ? WHERE id = ?').bind(ordem, imgId).run();
+        return json({ success: true });
+      }
+
+      // POST /api/admin/categorias/reordenar
+      if (path === '/api/admin/categorias/reordenar' && method === 'POST') {
+        const { ordem } = await request.json(); // [{id, ordem}, ...]
+        for (const item of ordem) {
+          await env.DB.prepare('UPDATE categorias SET ordem = ? WHERE id = ?').bind(item.ordem, item.id).run();
+        }
         return json({ success: true });
       }
 
