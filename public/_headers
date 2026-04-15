@@ -8,7 +8,7 @@
   Cache-Control: no-cache, must-revalidate
 
 /css/*
-  Cache-Control: public, max-age=3600
+  Cache-Control: no-cache, must-revalidate
 
 /logo-lua.webp
   Cache-Control: public, max-age=86400
