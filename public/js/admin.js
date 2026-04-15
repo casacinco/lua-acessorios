@@ -40,7 +40,7 @@ function showToastAdmin(msg, type = 'success') {
 
 function formatDate(str) {
   if (!str) return '—';
-  return new Date(str).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  return new Date(str).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone: 'America/Sao_Paulo' });
 }
 
 function formatMoney(v) {

@@ -69,9 +69,14 @@ async function requireAuth(request, env) {
   return await verifyJWT(token, env.JWT_SECRET);
 }
 
+// ── Data/hora em UTC-3 (São Paulo) ───────────────────────────
+function nowSP() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+}
+
 // ── Código de pedido ─────────────────────────────────────────
 async function gerarCodigo(db) {
-  const year = new Date().getFullYear();
+  const year = nowSP().getFullYear();
   const row = await db.prepare('SELECT COUNT(*) as cnt FROM pedidos WHERE codigo LIKE ?').bind(`LUA-${year}-%`).first();
   const num = String((row?.cnt || 0) + 1).padStart(3, '0');
   return `LUA-${year}-${num}`;
