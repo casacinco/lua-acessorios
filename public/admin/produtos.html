@@ -243,8 +243,9 @@ function renderTable(produtos) {
           <td style="color:var(--gold)">${p.preco_aco_dourado ? 'R$ ' + parseFloat(p.preco_aco_dourado).toFixed(2).replace('.',',') : '—'}</td>
           <td style="color:var(--steel)">${p.preco_latao_bruto ? 'R$ ' + parseFloat(p.preco_latao_bruto).toFixed(2).replace('.',',') : '—'}</td>
           <td><span class="badge ${p.ativo ? 'badge--confirmado' : 'badge--cancelado'}">${p.ativo ? 'Ativo' : 'Inativo'}</span></td>
-          <td>
+          <td style="display:flex;gap:6px">
             <button class="btn btn--secondary btn--sm" onclick="editProduct(${p.id})">✏️ Editar</button>
+            <button class="btn btn--sm" style="background:#fee2e2;color:#dc2626;border:none" onclick="deleteProduct(${p.id},'${p.ref}')">Excluir</button>
           </td>
         </tr>`).join('');
 }
@@ -267,6 +268,16 @@ function openProductModal(id = null) {
 function closeProductModal() {
   document.getElementById('modal-produto').classList.remove('open');
   editingId = null;
+}
+
+async function deleteProduct(id, ref) {
+  if (!confirm(`Excluir o produto "${ref}"? Esta ação não pode ser desfeita.`)) return;
+  const res = await apiFetch(`/api/admin/produto/${id}`, { method: 'DELETE' });
+  if (!res) return;
+  const data = await res.json();
+  if (!res.ok) { showToastAdmin(data.error || 'Erro ao excluir.', 'error'); return; }
+  showToastAdmin(`Produto ${ref} excluído.`);
+  loadProdutos();
 }
 
 async function editProduct(id) {

@@ -430,6 +430,16 @@ export default {
         return json({ success: true });
       }
 
+      // DELETE /api/admin/produto/:id
+      if (path.match(/^\/api\/admin\/produto\/\d+$/) && method === 'DELETE') {
+        const id = path.split('/').pop();
+        await env.DB.prepare('DELETE FROM itens_pedido WHERE produto_id = ?').bind(id).run();
+        await env.DB.prepare('DELETE FROM variacoes_produto WHERE produto_id = ?').bind(id).run();
+        await env.DB.prepare('DELETE FROM imagens_produto WHERE produto_id = ?').bind(id).run();
+        await env.DB.prepare('DELETE FROM produtos WHERE id = ?').bind(id).run();
+        return json({ success: true });
+      }
+
       // POST /api/admin/produto/:id/imagem — upload de imagem
       if (path.match(/^\/api\/admin\/produto\/\d+\/imagem$/) && method === 'POST') {
         const produtoId = path.split('/')[4];
