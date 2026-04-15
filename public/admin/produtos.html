@@ -269,7 +269,7 @@ async function editProduct(id) {
   editingId = id;
   document.getElementById('modal-prod-title').textContent = 'Editar Produto';
   document.getElementById('p-ref').value = p.ref;
-  document.getElementById('p-ref').disabled = true;
+  document.getElementById('p-ref').disabled = false;
   document.getElementById('p-categoria').value = p.categoria_id;
   document.getElementById('p-nome').value = p.nome || '';
   document.getElementById('p-tamanho').value = p.tamanho || '';
