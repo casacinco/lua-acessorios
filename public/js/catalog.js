@@ -44,7 +44,6 @@ async function loadCatalog() {
     const categorias = await catRes.json();
     renderFilters(categorias);
     renderProducts(allProducts);
-    document.getElementById('stat-produtos').textContent = allProducts.length + '+';
   } catch (e) {
     console.error('Erro ao carregar catálogo:', e);
     document.getElementById('product-grid').innerHTML = `
