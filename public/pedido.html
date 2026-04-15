@@ -55,9 +55,15 @@
                 <label>WhatsApp <span>*</span></label>
                 <input type="tel" class="form-control" id="f-whatsapp" placeholder="(00) 00000-0000" required>
               </div>
-              <div class="form-group">
-                <label>Endereço de entrega <span>*</span></label>
-                <input type="text" class="form-control" id="f-endereco" placeholder="Rua, número, bairro" required>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Endereço de entrega <span>*</span></label>
+                  <input type="text" class="form-control" id="f-endereco" placeholder="Rua, bairro" required>
+                </div>
+                <div class="form-group" style="max-width:120px">
+                  <label>Número <span>*</span></label>
+                  <input type="text" class="form-control" id="f-numero" placeholder="Nº" required>
+                </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -184,6 +190,7 @@ async function submitOrder(e) {
     cidade: document.getElementById('f-cidade').value.trim(),
     estado: document.getElementById('f-estado').value,
     endereco: document.getElementById('f-endereco').value.trim(),
+    numero: document.getElementById('f-numero').value.trim(),
     observacoes: document.getElementById('f-obs').value.trim(),
     itens: cart.map(i => ({ variacao_id: i.variacao_id, quantidade: i.quantidade })),
   };
