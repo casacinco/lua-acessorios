@@ -501,6 +501,50 @@ export default {
         return json({ success: true });
       }
 
+      // POST /api/admin/categoria
+      if (path === '/api/admin/categoria' && method === 'POST') {
+        const body = await request.json();
+        const { nome, slug, ordem } = body;
+        if (!nome || !slug) return err('nome e slug obrigatórios');
+        try {
+          const r = await env.DB.prepare(
+            'INSERT INTO categorias (nome, slug, ordem) VALUES (?, ?, ?)'
+          ).bind(nome, slug, ordem ?? 0).run();
+          return json({ success: true, id: r.meta.last_row_id }, 201);
+        } catch {
+          return err('Slug já existe');
+        }
+      }
+
+      // PUT /api/admin/categoria/:id
+      if (path.match(/^\/api\/admin\/categoria\/\d+$/) && method === 'PUT') {
+        const id = path.split('/').pop();
+        const body = await request.json();
+        const { nome, slug, ordem } = body;
+        if (!nome || !slug) return err('nome e slug obrigatórios');
+        try {
+          await env.DB.prepare(
+            'UPDATE categorias SET nome=?, slug=?, ordem=? WHERE id=?'
+          ).bind(nome, slug, ordem ?? 0, id).run();
+          return json({ success: true });
+        } catch {
+          return err('Slug já existe');
+        }
+      }
+
+      // DELETE /api/admin/categoria/:id
+      if (path.match(/^\/api\/admin\/categoria\/\d+$/) && method === 'DELETE') {
+        const id = path.split('/').pop();
+        const vinculados = await env.DB.prepare(
+          'SELECT COUNT(*) as cnt FROM produtos WHERE categoria_id = ?'
+        ).bind(id).first();
+        if (vinculados?.cnt > 0) {
+          return err(`Não é possível excluir: ${vinculados.cnt} produto(s) vinculado(s) a esta categoria.`, 409);
+        }
+        await env.DB.prepare('DELETE FROM categorias WHERE id = ?').bind(id).run();
+        return json({ success: true });
+      }
+
       // POST /api/admin/setup — moved outside auth block
 
       return err('Rota não encontrada', 404);
