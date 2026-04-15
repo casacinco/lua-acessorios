@@ -40,9 +40,11 @@ async function loadCatalog() {
       fetch(`${API_URL}/api/produtos`),
       fetch(`${API_URL}/api/categorias`),
     ]);
-    allProducts = await prodRes.json();
-    const categorias = await catRes.json();
-    renderFilters(categorias);
+    const prodData = await prodRes.json();
+    allProducts = Array.isArray(prodData) ? prodData : [];
+    const catData = await catRes.json();
+    const categorias = Array.isArray(catData) ? catData : [];
+    try { renderFilters(categorias); } catch(e) { console.error('renderFilters:', e); }
     renderProducts(allProducts);
   } catch (e) {
     console.error('Erro ao carregar catálogo:', e);
