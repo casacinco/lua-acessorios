@@ -86,6 +86,15 @@ document.getElementById('search-input')?.addEventListener('input', e => {
   filterAndRender();
 });
 
+function naturalSortRef(a, b) {
+  const prefA = a.ref.replace(/\d+$/, '');
+  const prefB = b.ref.replace(/\d+$/, '');
+  if (prefA !== prefB) return prefA.localeCompare(prefB);
+  const numA = parseInt(a.ref.match(/\d+$/)?.[0] || '0', 10);
+  const numB = parseInt(b.ref.match(/\d+$/)?.[0] || '0', 10);
+  return numA - numB;
+}
+
 function filterAndRender() {
   let filtered = allProducts;
   if (activeCategory) filtered = filtered.filter(p => p.categoria_slug === activeCategory);
@@ -93,6 +102,7 @@ function filterAndRender() {
     p.ref.toLowerCase().includes(searchQuery) ||
     (p.nome || '').toLowerCase().includes(searchQuery)
   );
+  filtered = [...filtered].sort(naturalSortRef);
   renderProducts(filtered);
 }
 
@@ -134,7 +144,7 @@ function renderProducts(products) {
             ${p.pedido_minimo ? `• Mín. ${p.pedido_minimo} un` : ''}
           </div>
           <div class="product-card__prices">${precosHtml}</div>
-          <button class="btn-add" onclick="event.stopPropagation();openModal(${p.id})">+ Adicionar ao Pedido</button>
+          <button class="btn-add" onclick="event.stopPropagation();openModal(${p.id})">ADICIONAR</button>
         </div>
       </div>`;
   }).join('');
