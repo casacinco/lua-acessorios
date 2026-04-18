@@ -163,6 +163,7 @@ button, input, select, textarea { font: inherit; }
   backdrop-filter: blur(10px);
 }
 .btn-hero--secondary:hover { background: rgba(255,255,255,.22); }
+.btn-hero--full { min-width: 280px; justify-content: center; }
 
 /* ── Stats bar ──────────────────────────────────────────────── */
 .stats-bar {
