@@ -154,11 +154,11 @@ button, input, select, textarea { font: inherit; }
 }
 .hero__actions { display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .hero__frete {
-  margin: 0;
+  margin: -20px auto 24px;
   font-size: clamp(0.7rem, 3.5vw, 0.85rem);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: .1em;
-  color: var(--gold);
+  color: var(--text);
   white-space: nowrap;
 }
 .btn-hero {
