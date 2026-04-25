@@ -133,9 +133,10 @@ button, input, select, textarea { font: inherit; }
 .hero__badge {
   display: inline-block;
   background: rgba(153,105,39,0.1);
-  color: #996927; font-size: 0.72rem; font-weight: 700;
+  color: #996927; font-size: clamp(0.55rem, 3.2vw, 0.72rem); font-weight: 700;
   padding: 6px 20px; border-radius: var(--radius-pill);
-  margin-bottom: 24px; letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 24px; letter-spacing: .08em; text-transform: uppercase;
+  white-space: nowrap;
   border: 1px solid #996927;
 }
 .hero__title {
