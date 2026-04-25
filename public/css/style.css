@@ -156,7 +156,7 @@ button, input, select, textarea { font: inherit; }
 .hero__frete {
   margin: 0;
   font-size: clamp(0.7rem, 3.5vw, 0.85rem);
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: .1em;
   color: var(--gold);
   white-space: nowrap;
