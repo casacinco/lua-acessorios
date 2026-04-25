@@ -176,7 +176,7 @@ export default {
       const params = [];
       if (cat) { query += ` AND c.slug = ?`; params.push(cat); }
       if (q) { query += ` AND (p.ref LIKE ? OR p.nome LIKE ?)`; params.push(`%${q}%`, `%${q}%`); }
-      query += ' ORDER BY p.ordem, p.ref';
+      query += ` ORDER BY c.ordem, RTRIM(p.ref,'0123456789'), CAST(SUBSTR(p.ref, LENGTH(RTRIM(p.ref,'0123456789'))+1) AS INTEGER)`;
 
       const stmt = env.DB.prepare(query);
       const rows = params.length ? await stmt.bind(...params).all() : await stmt.all();
@@ -369,7 +369,7 @@ export default {
       // GET /api/admin/produtos
       if (path === '/api/admin/produtos' && method === 'GET') {
         const rows = await env.DB.prepare(
-          `SELECT p.*, c.nome as categoria_nome FROM produtos p LEFT JOIN categorias c ON c.id = p.categoria_id ORDER BY p.ref`
+          `SELECT p.*, c.nome as categoria_nome FROM produtos p LEFT JOIN categorias c ON c.id = p.categoria_id ORDER BY c.ordem, RTRIM(p.ref,'0123456789'), CAST(SUBSTR(p.ref, LENGTH(RTRIM(p.ref,'0123456789'))+1) AS INTEGER)`
         ).all();
         return json(rows.results);
       }
@@ -406,11 +406,11 @@ export default {
       if (path.match(/^\/api\/admin\/produto\/\d+$/) && method === 'PUT') {
         const id = path.split('/').pop();
         const body = await request.json();
-        const { ref, nome, tamanho, espessura, pedido_minimo, ativo, ordem, variacoes } = body;
+        const { ref, categoria_id, nome, tamanho, espessura, pedido_minimo, ativo, ordem, variacoes } = body;
 
         await env.DB.prepare(
-          `UPDATE produtos SET ref=?, nome=?, tamanho=?, espessura=?, pedido_minimo=?, ativo=?, ordem=? WHERE id=?`
-        ).bind(ref || null, nome || null, tamanho || '', espessura || '', pedido_minimo || 15, ativo ?? 1, ordem ?? 0, id).run();
+          `UPDATE produtos SET ref=?, categoria_id=?, nome=?, tamanho=?, espessura=?, pedido_minimo=?, ativo=?, ordem=? WHERE id=?`
+        ).bind(ref || null, categoria_id || null, nome || null, tamanho || '', espessura || '', pedido_minimo || 15, ativo ?? 1, ordem ?? 0, id).run();
 
         if (variacoes?.length) {
           for (const v of variacoes) {
@@ -543,14 +543,15 @@ export default {
 
       // PUT /api/admin/categoria/:id
       if (path.match(/^\/api\/admin\/categoria\/\d+$/) && method === 'PUT') {
-        const id = path.split('/').pop();
+        const id = parseInt(path.split('/').pop(), 10);
         const body = await request.json();
         const { nome, slug, ordem } = body;
         if (!nome || !slug) return err('nome e slug obrigatórios');
         try {
-          await env.DB.prepare(
+          const result = await env.DB.prepare(
             'UPDATE categorias SET nome=?, slug=?, ordem=? WHERE id=?'
           ).bind(nome, slug, ordem ?? 0, id).run();
+          if (result.meta.changes === 0) return err('Categoria não encontrada', 404);
           return json({ success: true });
         } catch {
           return err('Slug já existe');

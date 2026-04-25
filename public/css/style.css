@@ -65,6 +65,17 @@ button, input, select, textarea { font: inherit; }
 .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 .container--sm { max-width: 600px; margin: 0 auto; padding: 0 20px; }
 
+/* ── Promo Banner ───────────────────────────────────────────── */
+.promo-banner {
+  background: var(--brand);
+  color: #fff;
+  text-align: center;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 8px 16px;
+}
+
 /* ── Navbar — Francisca style: clean, luxury ───────────────── */
 .navbar {
   background: var(--surface);

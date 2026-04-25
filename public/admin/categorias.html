@@ -106,7 +106,7 @@ let originalOrder = [];
 let orderChanged = false;
 
 async function loadCategorias() {
-  const res = await apiFetch('/api/categorias');
+  const res = await apiFetch(`/api/categorias?_t=${Date.now()}`);
   if (!res) return;
   categorias = await res.json();
   originalOrder = categorias.map(c => c.id);
@@ -245,9 +245,20 @@ async function saveCategoria() {
   if (!res) return;
   const data = await res.json();
   if (!res.ok) { showToastAdmin(data.error, 'error'); return; }
+
+  // Update local array immediately (avoid stale server data overwriting correct data)
+  if (editingId) {
+    const idx = categorias.findIndex(c => c.id === editingId);
+    if (idx >= 0) categorias[idx] = { ...categorias[idx], nome, slug, ordem };
+  } else {
+    const newCat = { id: data.id, nome, slug, ordem };
+    categorias.push(newCat);
+    originalOrder.push(data.id);
+  }
+  render();
+
   showToastAdmin(editingId ? 'Categoria atualizada!' : 'Categoria criada!');
   closeModal();
-  loadCategorias();
 }
 
 async function deleteCategoria(id, nome) {
