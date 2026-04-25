@@ -67,26 +67,13 @@ button, input, select, textarea { font: inherit; }
 
 /* ── Promo Banner ───────────────────────────────────────────── */
 .promo-banner {
-  background: var(--gold-light);
-  border-bottom: 1.5px solid #e8d49a;
-  color: var(--text);
+  background: var(--brand);
+  color: #fff;
   text-align: center;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-.promo-banner .promo-icon {
-  font-size: 1.15rem;
-  line-height: 1;
-}
-.promo-banner .promo-highlight {
-  color: var(--gold);
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 8px 16px;
 }
 
 /* ── Navbar — Francisca style: clean, luxury ───────────────── */
