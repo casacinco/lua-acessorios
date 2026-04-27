@@ -164,12 +164,27 @@ function renderOrderSummary() {
       <div class="summary-item__name">
         <strong>${item.ref}</strong><br>
         <span style="font-size:.8rem;color:var(--text-muted)">${item.material_nome}</span><br>
-        <span style="font-size:.8rem;color:var(--text-muted)">Qtd: ${item.quantidade} × R$ ${item.preco.toFixed(2).replace('.',',')}</span>
+        <span style="font-size:.8rem;color:var(--text-muted)">R$ ${item.preco.toFixed(2).replace('.',',')} / un — Subtotal: <strong>R$ ${(item.preco * item.quantidade).toFixed(2).replace('.',',')}</strong></span>
       </div>
-      <div class="summary-item__val">R$ ${(item.preco * item.quantidade).toFixed(2).replace('.',',')}</div>
+      <div class="cart-item__controls">
+        <button class="qty-btn" onclick="summaryChangeQty(${item.variacao_id}, -1)">−</button>
+        <span class="qty-val">${item.quantidade}</span>
+        <button class="qty-btn" onclick="summaryChangeQty(${item.variacao_id}, 1)">+</button>
+        <button class="cart-item__remove" onclick="summaryRemoveItem(${item.variacao_id})" title="Remover">🗑</button>
+      </div>
     </div>
   `).join('');
   totalEl.textContent = `R$ ${total.toFixed(2).replace('.',',')}`;
+}
+
+function summaryChangeQty(variacaoId, delta) {
+  changeQty(variacaoId, delta);
+  renderOrderSummary();
+}
+
+function summaryRemoveItem(variacaoId) {
+  removeItem(variacaoId);
+  renderOrderSummary();
 }
 
 async function submitOrder(e) {
