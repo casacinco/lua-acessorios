@@ -127,9 +127,12 @@ async function openPedido(id) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;font-size:.9rem">
       <div><strong>Cliente:</strong> ${p.nome_cliente}</div>
       <div><strong>WhatsApp:</strong> <a href="https://wa.me/55${p.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:#25d366">${p.whatsapp}</a></div>
-      <div><strong>Cidade:</strong> ${p.cidade} / ${p.estado}</div>
+      ${p.documento ? `<div><strong>CNPJ/CPF:</strong> ${p.documento}</div>` : '<div></div>'}
+      ${p.inscricao_estadual ? `<div><strong>Insc. Estadual:</strong> ${p.inscricao_estadual}</div>` : '<div></div>'}
+      <div style="grid-column:1/-1"><strong>Endereço:</strong> ${[p.endereco, p.numero].filter(Boolean).join(', ') || '—'}</div>
+      <div><strong>Cidade / UF:</strong> ${p.cidade} / ${p.estado}</div>
+      ${p.cep ? `<div><strong>CEP:</strong> ${p.cep}</div>` : '<div></div>'}
       <div><strong>Data:</strong> ${formatDate(p.criado_em)}</div>
-      ${p.endereco ? `<div style="grid-column:1/-1"><strong>Endereço:</strong> ${p.endereco}</div>` : ''}
       ${p.observacoes ? `<div style="grid-column:1/-1"><strong>Obs.:</strong> ${p.observacoes}</div>` : ''}
     </div>
     <table style="width:100%;border-collapse:collapse;font-size:.875rem">
