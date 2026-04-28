@@ -336,13 +336,7 @@ export default {
 
       // GET /api/admin/pedidos
       if (path === '/api/admin/pedidos' && method === 'GET') {
-        const status = url.searchParams.get('status');
-        let q = 'SELECT * FROM pedidos';
-        const params = [];
-        if (status) { q += ' WHERE status = ?'; params.push(status); }
-        q += ' ORDER BY criado_em DESC LIMIT 100';
-        const stmt = env.DB.prepare(q);
-        const rows = params.length ? await stmt.bind(...params).all() : await stmt.all();
+        const rows = await env.DB.prepare('SELECT * FROM pedidos ORDER BY criado_em DESC').all();
         return json(rows.results);
       }
 

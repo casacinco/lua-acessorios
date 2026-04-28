@@ -28,11 +28,62 @@
       <h1>Pedidos</h1>
     </div>
     <div class="admin-content">
+
+      <!-- ── Cards de Resumo ─────────────────────────────────── -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--red">📦</div>
+          <div class="stat-card__val" id="stat-total">—</div>
+          <div class="stat-card__label">Pedidos no Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--yellow">⏳</div>
+          <div class="stat-card__val" id="stat-pendente">—</div>
+          <div class="stat-card__label">Pendentes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--blue">✅</div>
+          <div class="stat-card__val" id="stat-confirmado">—</div>
+          <div class="stat-card__label">Confirmados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--green">🚚</div>
+          <div class="stat-card__val" id="stat-enviado">—</div>
+          <div class="stat-card__label">Enviados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" style="background:#f5f3ff">💰</div>
+          <div class="stat-card__val" id="stat-faturamento" style="font-size:1.35rem">—</div>
+          <div class="stat-card__label">Faturamento</div>
+        </div>
+      </div>
+
+      <!-- ── Tabela de Pedidos ───────────────────────────────── -->
       <div class="table-card">
         <div class="table-header">
           <h2>Todos os Pedidos</h2>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <select class="form-control" id="status-filter" style="width:auto;padding:8px 12px" onchange="loadPedidos()">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+
+            <!-- Filtro de período -->
+            <select class="form-control" id="period-filter" style="width:auto;padding:8px 12px" onchange="onPeriodChange()">
+              <option value="todos">Todos os períodos</option>
+              <option value="hoje">Hoje</option>
+              <option value="ontem">Ontem</option>
+              <option value="7dias">7 dias</option>
+              <option value="14dias">14 dias</option>
+              <option value="personalizado">Personalizado</option>
+            </select>
+
+            <!-- Intervalo personalizado (oculto por padrão) -->
+            <div id="custom-range" style="display:none;gap:6px;align-items:center">
+              <label style="font-size:.8rem;color:var(--text-muted);white-space:nowrap">De</label>
+              <input type="date" class="form-control" id="date-from" style="padding:8px 10px" onchange="applyFilters()">
+              <label style="font-size:.8rem;color:var(--text-muted);white-space:nowrap">Até</label>
+              <input type="date" class="form-control" id="date-to" style="padding:8px 10px" onchange="applyFilters()">
+            </div>
+
+            <!-- Filtro de status -->
+            <select class="form-control" id="status-filter" style="width:auto;padding:8px 12px" onchange="applyFilters()">
               <option value="">Todos os status</option>
               <option value="pendente">Pendente</option>
               <option value="confirmado">Confirmado</option>
@@ -85,13 +136,109 @@
 <script>
 requireAdmin();
 let currentPedidoId = null;
+let allPedidos = [];
 
-async function loadPedidos() {
+// ── Helpers de data (fuso de São Paulo) ─────────────────────
+
+function getSPNow() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+}
+
+function toDBStr(d) {
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+function getDateBounds() {
+  const period = document.getElementById('period-filter').value;
+  if (period === 'todos') return null;
+
+  const now = getSPNow();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
+  if (period === 'hoje') {
+    return { from: toDBStr(todayStart), to: toDBStr(now) };
+  }
+  if (period === 'ontem') {
+    const s = new Date(todayStart);
+    s.setDate(s.getDate() - 1);
+    const e = new Date(s);
+    e.setHours(23, 59, 59, 0);
+    return { from: toDBStr(s), to: toDBStr(e) };
+  }
+  if (period === '7dias') {
+    const s = new Date(todayStart);
+    s.setDate(s.getDate() - 6);
+    return { from: toDBStr(s), to: toDBStr(now) };
+  }
+  if (period === '14dias') {
+    const s = new Date(todayStart);
+    s.setDate(s.getDate() - 13);
+    return { from: toDBStr(s), to: toDBStr(now) };
+  }
+  if (period === 'personalizado') {
+    const from = document.getElementById('date-from').value;
+    const to   = document.getElementById('date-to').value;
+    return {
+      from: from ? `${from} 00:00:00` : null,
+      to:   to   ? `${to} 23:59:59`   : null,
+    };
+  }
+  return null;
+}
+
+// ── Exibir / ocultar intervalo personalizado ─────────────────
+
+function onPeriodChange() {
+  const period = document.getElementById('period-filter').value;
+  const box = document.getElementById('custom-range');
+  box.style.display = period === 'personalizado' ? 'flex' : 'none';
+  applyFilters();
+}
+
+// ── Atualizar cards de resumo ────────────────────────────────
+
+function updateStats(pedidos) {
+  document.getElementById('stat-total').textContent      = pedidos.length;
+  document.getElementById('stat-pendente').textContent   = pedidos.filter(p => p.status === 'pendente').length;
+  document.getElementById('stat-confirmado').textContent = pedidos.filter(p => p.status === 'confirmado').length;
+  document.getElementById('stat-enviado').textContent    = pedidos.filter(p => p.status === 'enviado').length;
+
+  const fat = pedidos
+    .filter(p => p.status !== 'cancelado')
+    .reduce((acc, p) => acc + (p.total || 0), 0);
+  document.getElementById('stat-faturamento').textContent = formatMoney(fat);
+}
+
+// ── Aplicar filtros e renderizar ─────────────────────────────
+
+function applyFilters() {
+  const bounds = getDateBounds();
   const status = document.getElementById('status-filter').value;
-  const url = status ? `/api/admin/pedidos?status=${status}` : '/api/admin/pedidos';
-  const res = await apiFetch(url);
-  if (!res) return;
-  const pedidos = await res.json();
+
+  // Filtro de data (base para os cards)
+  let byDate = allPedidos;
+  if (bounds) {
+    byDate = allPedidos.filter(p => {
+      const d = p.criado_em || '';
+      if (bounds.from && d < bounds.from) return false;
+      if (bounds.to   && d > bounds.to)   return false;
+      return true;
+    });
+  }
+
+  // Cards refletem todos os status dentro do período
+  updateStats(byDate);
+
+  // Filtro de status aplicado só na tabela
+  const displayed = status ? byDate.filter(p => p.status === status) : byDate;
+  renderTable(displayed);
+}
+
+// ── Renderizar linhas da tabela ──────────────────────────────
+
+function renderTable(pedidos) {
   const tbody = document.getElementById('orders-table');
   tbody.innerHTML = pedidos.length === 0
     ? `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">Nenhum pedido encontrado.</td></tr>`
@@ -107,6 +254,17 @@ async function loadPedidos() {
           <td><button class="btn btn--secondary btn--sm" onclick="openPedido(${p.id})">Ver</button></td>
         </tr>`).join('');
 }
+
+// ── Carregar todos os pedidos da API ─────────────────────────
+
+async function loadPedidos() {
+  const res = await apiFetch('/api/admin/pedidos');
+  if (!res) return;
+  allPedidos = await res.json();
+  applyFilters();
+}
+
+// ── Modal de detalhes ────────────────────────────────────────
 
 async function openPedido(id) {
   currentPedidoId = id;
