@@ -65,6 +65,10 @@
                   <input type="text" class="form-control" id="f-numero" placeholder="Nº" required>
                 </div>
               </div>
+              <div class="form-group">
+                <label>Bairro <span>*</span></label>
+                <input type="text" class="form-control" id="f-bairro" placeholder="Seu bairro" required>
+              </div>
               <div class="form-row">
                 <div class="form-group">
                   <label>Cidade <span>*</span></label>
@@ -202,6 +206,7 @@ async function submitOrder(e) {
     documento: document.getElementById('f-documento').value.trim(),
     inscricao_estadual: document.getElementById('f-ie').value.trim(),
     cep: document.getElementById('f-cep').value.trim(),
+    bairro: document.getElementById('f-bairro').value.trim(),
     cidade: document.getElementById('f-cidade').value.trim(),
     estado: document.getElementById('f-estado').value,
     endereco: document.getElementById('f-endereco').value.trim(),

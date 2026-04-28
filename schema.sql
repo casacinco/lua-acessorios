@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS pedidos (
   codigo TEXT UNIQUE NOT NULL,
   nome_cliente TEXT NOT NULL,
   whatsapp TEXT NOT NULL,
+  bairro TEXT,
   cidade TEXT NOT NULL,
   estado TEXT NOT NULL,
   cep TEXT,

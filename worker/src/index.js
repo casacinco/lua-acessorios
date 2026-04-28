@@ -246,7 +246,7 @@ export default {
       let body;
       try { body = await request.json(); } catch { return err('JSON inválido'); }
 
-      const { nome_cliente, whatsapp, cidade, estado, cep, endereco, numero, documento, inscricao_estadual, observacoes, itens } = body;
+      const { nome_cliente, whatsapp, bairro, cidade, estado, cep, endereco, numero, documento, inscricao_estadual, observacoes, itens } = body;
       if (!nome_cliente || !whatsapp || !cidade || !estado || !itens?.length) {
         return err('Campos obrigatórios: nome_cliente, whatsapp, cidade, estado, itens');
       }
@@ -271,9 +271,9 @@ export default {
       // Inserir pedido
       const criado_em = nowSP().toISOString().slice(0, 19).replace('T', ' ');
       const pedidoResult = await env.DB.prepare(
-        `INSERT INTO pedidos (codigo, nome_cliente, whatsapp, cidade, estado, cep, endereco, numero, documento, inscricao_estadual, observacoes, total, criado_em)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(codigo, nome_cliente, whatsapp, cidade, estado, cep || '', endereco || '', numero || '', documento || '', inscricao_estadual || '', observacoes || '', total, criado_em).run();
+        `INSERT INTO pedidos (codigo, nome_cliente, whatsapp, bairro, cidade, estado, cep, endereco, numero, documento, inscricao_estadual, observacoes, total, criado_em)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(codigo, nome_cliente, whatsapp, bairro || '', cidade, estado, cep || '', endereco || '', numero || '', documento || '', inscricao_estadual || '', observacoes || '', total, criado_em).run();
 
       const pedidoId = pedidoResult.meta.last_row_id;
 

@@ -288,6 +288,7 @@ async function openPedido(id) {
       ${p.documento ? `<div><strong>CNPJ/CPF:</strong> ${p.documento}</div>` : '<div></div>'}
       ${p.inscricao_estadual ? `<div><strong>Insc. Estadual:</strong> ${p.inscricao_estadual}</div>` : '<div></div>'}
       <div style="grid-column:1/-1"><strong>Endereço:</strong> ${[p.endereco, p.numero].filter(Boolean).join(', ') || '—'}</div>
+      ${p.bairro ? `<div><strong>Bairro:</strong> ${p.bairro}</div>` : '<div></div>'}
       <div><strong>Cidade / UF:</strong> ${p.cidade} / ${p.estado}</div>
       ${p.cep ? `<div><strong>CEP:</strong> ${p.cep}</div>` : '<div></div>'}
       <div><strong>Data:</strong> ${formatDate(p.criado_em)}</div>
